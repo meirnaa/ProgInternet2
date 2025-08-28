@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="estilos/imagens/favicon.png">
     <link rel="stylesheet" href="./estilos/home_style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -35,12 +36,44 @@
         </nav>
         </header>
 
-        <main>
-        <section id="dashboard">
+        <main class="dashboard">
             <h2>Visão Geral</h2>
-            <p>Bem-vindo à sua central de controle.</p>
-        </section>
+            <p>Bem-vindo à sua central de controle.</p><br>
+            
+            <section class="cards">
+                <div class="card">
+                    <h2>Total de Dispositivos</h2>
+                    <p><span id="total-dispositivos">0</span></p>
+                </div>
+                <div class="card">
+                    <h2>Dispositivos Ativos</h2>
+                    <p><span id="dispositivos-ativos">0</span></p>
+                </div>
+                <div class="card">
+                    <h2>Cômodos Cadastrados</h2>
+                    <p><span id="comodos">0</span></p>
+                </div>
+            </section>
+
+            <section class="charts">
+                <div class="chart-container">
+                    <h2>Dispositivos por Tipo</h2>
+                    <br>
+                    <canvas id="devicesChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h2>Uso da Semana</h2>
+                    <canvas id="usageChart"></canvas>
+
+                    <div class="chart-container full-width">
+                    <h2>Uso do Mês</h2>
+                    <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+            </section>
         </main>
+
 
         <footer>
             <p>&copy; 2025 Helpy Home. Todos os direitos reservados.</p>
