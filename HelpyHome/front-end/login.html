@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helpy Home</title>
+    <link rel="icon" type="image/png" href="estilos/imagens/favicon.png">
+    <link rel="stylesheet" href="./estilos/login_style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button id="theme-toggle" class="theme-toggle">
+        🌙
+    </button>
+    <div class="container">
+        <div class="logo-container">
+            <img src="estilos/imagens/favicon.png" alt="Logo da Minha Casa Inteligente" class="logo">
+        </div>
+        <div id="login-form" class="form-container active">
+        <h2>Login</h2>
+        <form id="login">
+            <input type="email" placeholder="E-mail" required>
+            <input type="password" placeholder="Senha" required>
+            <div class="button-wrapper">
+                <button type="submit"  class="glow-on-hover">Entrar</button>
+            </div>
+        </form>
+        <p>Ainda não tem uma conta? <a href="#" id="link-cadastro">Cadastre-se</a></p>
+    </div>
+
+    <div id="cadastro-form" class="form-container">
+        <h2>Criar Conta</h2>
+        <form id="cadastro">
+            <input type="text" placeholder="Nome Completo" required>
+            <input type="email" placeholder="E-mail" required>
+            <input type="password" placeholder="Senha" required>
+            <input type="password" placeholder="Confirmar Senha" required>
+            <div class="button-wrapper">
+                <button type="submit" class="glow-on-hover">Cadastrar</button>
+            </div>
+        </form>
+        <p>Já tem uma conta? <a href="#" id="link-login">Faça login</a></p>
+    </div>
+        </div>
+    </div>
+    
+    <script src="./scripts/login.js"></script>
+</body>
+</html>
