@@ -152,16 +152,42 @@ nav ul li {
     margin: 0 15px;
 }
 
+
 nav ul li a {
-    color: var(--laranja-suave);
+    /* Estilos básicos dos botões */
     font-weight: 600;
     text-decoration: none;
-    transition: color 0.3s;
+    padding: 10px 20px;
+    border-radius: 25px;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    color: var(--laranja-suave);
+    background-color: transparent; /* Fundo transparente por padrão */
+    
+    /* Borda visível o tempo todo */
+    border: 2px solid var(--laranja-suave);
+    
+    /* Alinha o ícone e o texto */
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espaço entre o ícone e o texto */
 }
 
 nav ul li a:hover {
-    color: var(--laranja-escuro);
+    color: #fff;
+    background-color: var(--laranja-principal);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    
+    /* A borda agora muda de cor no hover */
+    border-color: var(--laranja-principal);
 }
+
+/* Estilo para o ícone */
+nav ul li a i {
+    font-size: 18px; /* Tamanho do ícone */
+}
+
 
 main {
     max-width: 1000px;
