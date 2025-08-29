@@ -35,6 +35,24 @@ body {
     padding: 0;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+    flex: 1;
+}
+
 header {
     background-color: var(--container-background);
     border-bottom: var(--borda-fina);
@@ -173,13 +191,6 @@ nav ul li a:hover {
 /* Estilo para o ícone */
 nav ul li a i {
     font-size: 18px; /* Tamanho do ícone */
-}
-
-
-main {
-    max-width: 1000px;
-    margin: 30px auto;
-    padding: 20px;
 }
 
 footer {

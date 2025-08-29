@@ -35,6 +35,24 @@ body {
     padding: 0;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    max-width: 1500px;
+    margin: 30px auto;
+    padding: 20px;
+    flex: 1;
+}
+
 header {
     background-color: var(--container-background);
     border-bottom: var(--borda-fina);
@@ -175,18 +193,12 @@ nav ul li a i {
     font-size: 18px; /* Tamanho do ícone */
 }
 
-
-main {
-    max-width: 1000px;
-    margin: 30px auto;
-    padding: 20px;
-}
-
 .cenas-container {
   background: var(--fundo-card, #f9f9f9);
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  width: 800px;
 }
 
 .acoes-cenas {
