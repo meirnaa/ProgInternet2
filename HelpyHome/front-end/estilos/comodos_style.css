@@ -47,7 +47,7 @@ html, body {
 }
 
 main {
-    max-width: 1000px;
+    max-width: 1500px;
     margin: 30px auto;
     padding: 20px;
     flex: 1;
@@ -193,6 +193,128 @@ nav ul li a i {
     font-size: 18px; /* Tamanho do ícone */
 }
 
+/* Modificações específicas para a página de cômodos */
+.comodos-container {
+    background: var(--fundo-card, #f9f9f9);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 800px;
+    max-width: 100%;
+}
+
+.acoes-comodos {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.acoes-comodos button {
+    background: var(--laranja-suave, #ff9800);
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.acoes-comodos button:hover {
+    background: #e68900;
+}
+
+.form-comodo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fff3e0;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.form-comodo.hidden {
+    display: none;
+}
+
+.form-comodo input, .form-comodo textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.lista-comodos ul {
+    list-style: none;
+    padding: 0;
+}
+
+.lista-comodos li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: #fff8e1;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.lista-comodos li .comodo-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.lista-comodos li .comodo-info i {
+    font-size: 24px;
+    color: var(--laranja-principal);
+}
+
+.lista-comodos li .comodo-actions {
+    display: flex;
+    gap: 10px; /* Aumenta a distância entre os botões */
+    align-items: center;
+}
+
+.lista-comodos li .comodo-actions button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    font-size: 1.1em;
+    transition: color 0.3s;
+}
+
+.lista-comodos li .comodo-actions button:hover {
+    color: #e68900;
+}
+
+/* Novo botão de gerenciamento de dispositivos */
+.btn-gerenciar-dispositivos {
+    background-color: var(--laranja-principal);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.3s;
+}
+
+.btn-gerenciar-dispositivos:hover {
+    background-color: var(--laranja-escuro);
+}
+
+/* Estilos para o ícone no botão */
+.btn-gerenciar-dispositivos i {
+    color: #fff;
+}
+
+
 footer {
     background-color: var(--container-background);
     border-top: var(--borda-fina);
@@ -202,7 +324,6 @@ footer {
     font-size: 0.9rem;
     margin-top: 30px;
 }
-
 
 footer p {
     margin: 5px 0;
@@ -253,9 +374,42 @@ body.dark-mode .user-options button:hover {
     color: #fff;
 }
 
-body.dark-mode section#dashboard {
+body.dark-mode .comodos-container {
     background: #2a2a2a;
     border-color: #555;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .form-comodo {
+    background: #333;
+    border-color: #444;
+}
+
+body.dark-mode .form-comodo input, body.dark-mode .form-comodo textarea {
+    background: #444;
+    color: #f0f0f0;
+    border-color: #555;
+}
+
+body.dark-mode .lista-comodos li {
+    background: #333;
+    border: 1px solid #444;
+}
+
+body.dark-mode .lista-comodos li .comodo-info h4,
+body.dark-mode .lista-comodos li .comodo-info p {
+    color: #f0f0f0;
+}
+
+body.dark-mode .lista-comodos li .comodo-info i {
+    color: var(--laranja-suave);
+}
+body.dark-mode .btn-gerenciar-dispositivos {
+    background-color: var(--laranja-principal);
+    color: #fff;
+}
+body.dark-mode .btn-gerenciar-dispositivos:hover {
+    background-color: var(--laranja-escuro);
 }
 
 
@@ -266,8 +420,8 @@ body.dark-mode section#dashboard {
     }
 
     nav ul {
-        display: flex;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
     }
 
     nav ul li {
@@ -278,38 +432,233 @@ body.dark-mode section#dashboard {
         padding: 0 10px;
     }
 
-    .campos input, .campos textarea {
+    .comodos-container {
+        padding: 10px;
+    }
+
+    .acoes-comodos {
+        justify-content: center;
+    }
+
+    .form-comodo input, .form-comodo textarea {
         font-size: 0.9rem;
     }
 
-    section#postagens article h2 {
-        font-size: 1.5rem;
+    .lista-comodos li .comodo-info h4 {
+        font-size: 1.1rem;
     }
 
-    section#postagens article p {
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .campos input, .campos textarea {
-        font-size: 0.8rem;
-    }
-
-    section#postagens article h2 {
-        font-size: 1.25rem;
-    }
-
-    section#postagens article p {
+    .lista-comodos li .comodo-info p {
         font-size: 0.85rem;
     }
 
-    nav ul {
+    .lista-comodos li {
         flex-direction: column;
-        align-items: center;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 15px;
     }
 
-    nav ul li {
-        margin-bottom: 5px;
+    .lista-comodos li .comodo-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* ... seu código CSS existente ... */
+
+/* Modificações específicas para a página de cômodos */
+.comodos-container,
+.dispositivos-container {
+    background: var(--fundo-card, #f9f9f9);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 800px; /* <--- Mantenha ou ajuste para a sua necessidade */
+    max-width: 100%;
+}
+
+.comodos-container.hidden,
+.dispositivos-container.hidden {
+    display: none;
+}
+
+.acoes-comodos,
+.acoes-dispositivos {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.acoes-comodos button,
+.acoes-dispositivos button {
+    background: var(--laranja-suave, #ff9800);
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.acoes-comodos button:hover,
+.acoes-dispositivos button:hover {
+    background: #e68900;
+}
+
+.form-comodo,
+.form-dispositivo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fff3e0;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.form-comodo.hidden,
+.form-dispositivo.hidden {
+    display: none;
+}
+
+.form-comodo input, .form-comodo textarea,
+.form-dispositivo input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.lista-comodos ul,
+.lista-dispositivos ul {
+    list-style: none;
+    padding: 0;
+}
+
+.lista-comodos li,
+.lista-dispositivos li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: #fff8e1;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.comodo-info,
+.dispositivo-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.comodo-actions,
+.dispositivo-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.comodo-actions button,
+.dispositivo-actions button,
+.btn-voltar-comodos {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    font-size: 1.1em;
+    transition: color 0.3s;
+}
+
+.comodo-actions button:hover,
+.dispositivo-actions button:hover,
+.btn-voltar-comodos:hover {
+    color: #e68900;
+}
+
+.btn-gerenciar-dispositivos {
+    background-color: var(--laranja-principal);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: background-color 0.3s;
+}
+
+.btn-gerenciar-dispositivos:hover {
+    background-color: var(--laranja-escuro);
+}
+
+/* ... seu código para Dark Mode ... */
+body.dark-mode .dispositivos-container,
+body.dark-mode .lista-dispositivos li {
+    background: #2a2a2a;
+    border-color: #555;
+}
+
+body.dark-mode .form-dispositivo {
+    background: #333;
+}
+
+body.dark-mode .form-dispositivo input {
+    background: #444;
+    color: #f0f0f0;
+}
+
+/* ... seu CSS existente ... */
+
+/* Estilização para os botões de ação dentro dos itens da lista */
+.comodo-actions button,
+.dispositivo-actions button {
+    background: var(--laranja-suave, #ff9800);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.comodo-actions button:hover,
+.dispositivo-actions button:hover {
+    background: var(--laranja-escuro, #e68900);
+}
+
+/* Garante que os ícones fiquem brancos nos botões */
+.comodo-actions button i,
+.dispositivo-actions button i {
+    color: white;
+}
+
+/* Remove a cor transparente dos botões de editar/remover para aplicar a nova estilização */
+.lista-comodos li .comodo-actions button,
+.lista-dispositivos li .dispositivo-actions button {
+    background: var(--laranja-suave);
+    color: white;
+    font-size: 0.9em;
+    padding: 8px 12px;
+}
+/* ... seu CSS existente ... */
+
+
+
+@media (max-width: 480px) {
+    .form-comodo input, .form-comodo textarea {
+        font-size: 0.8rem;
+    }
+
+    .lista-comodos li .comodo-actions {
+        flex-direction: column;
+        gap: 8px;
+        width: auto;
+    }
+    .lista-comodos li .comodo-actions button {
+        width: 100%;
     }
 }
