@@ -62,12 +62,6 @@ header {
     border-bottom: var(--borda-fina);
 }
 
-.menu {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-}
-
 .user-menu {
     position: absolute;
     top: 15px;
@@ -121,7 +115,6 @@ header {
     color: var(--laranja-principal);
 }
 
-
 .logo-container {
     margin-bottom: 10px;
 }
@@ -132,14 +125,7 @@ header {
     margin: 0 auto 10px auto;
 }
 
-header h1 {
-    margin: 0;
-    font-size: 2rem;
-    color: var(--laranja-principal);
-}
-
 header p {
-    /* top right bottom left */
     margin: 0 0 30px 0;
     font-size: 14px;
     color: var(--paragrafo-cor);
@@ -157,9 +143,7 @@ nav ul li {
     margin: 0 15px;
 }
 
-
 nav ul li a {
-    /* Estilos básicos dos botões */
     font-weight: 600;
     text-decoration: none;
     padding: 10px 20px;
@@ -167,15 +151,11 @@ nav ul li a {
     transition: all 0.3s ease-in-out;
     position: relative;
     color: var(--laranja-suave);
-    background-color: transparent; /* Fundo transparente por padrão */
-    
-    /* Borda visível o tempo todo */
+    background-color: transparent;
     border: 2px solid var(--laranja-suave);
-    
-    /* Alinha o ícone e o texto */
     display: flex;
     align-items: center;
-    gap: 8px; /* Espaço entre o ícone e o texto */
+    gap: 8px;
 }
 
 nav ul li a:hover {
@@ -183,90 +163,116 @@ nav ul li a:hover {
     background-color: var(--laranja-principal);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transform: translateY(-2px);
-    
-    /* A borda agora muda de cor no hover */
     border-color: var(--laranja-principal);
 }
 
-/* Estilo para o ícone */
 nav ul li a i {
-    font-size: 18px; /* Tamanho do ícone */
+    font-size: 18px;
 }
 
+/* Estilos para a seção de Cenas, iguais aos de Cômodos */
 .cenas-container {
-  background: var(--fundo-card, #f9f9f9);
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  width: 800px;
+    background: var(--container-background, #f9f9f9);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 800px;
+    max-width: 100%;
 }
 
 .acoes-cenas {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 .acoes-cenas button {
-  background: var(--laranja-suave, #ff9800);
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.3s;
+    background: var(--laranja-suave, #ff9800);
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
 }
 
 .acoes-cenas button:hover {
-  background: #e68900;
+    background: var(--laranja-escuro);
 }
 
 .form-cena {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: #fff3e0;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fff3e0;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
 }
 
 .form-cena.hidden {
-  display: none;
+    display: none;
 }
 
 .form-cena input, .form-cena textarea {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
 }
 
 .lista-cenas ul {
-  list-style: none;
-  padding: 0;
+    list-style: none;
+    padding: 0;
 }
 
 .lista-cenas li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  margin-bottom: 6px;
-  background: #fff8e1;
-  border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: #fff8e1;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.lista-cenas li button {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #555;
+.lista-cenas li .cenas-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
-.lista-cenas li button:hover {
-  color: #e68900;
+.cenas-actions button {
+    background: var(--laranja-suave);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+    font-size: 0.9em;
 }
 
+.cenas-actions button:hover {
+    background: var(--laranja-escuro);
+}
+
+.cenas-actions button i {
+    color: white;
+    margin-right: 5px;
+}
+
+.btn-cancelar {
+    background: #ccc;
+    color: var(--cinza-texto);
+}
+
+.btn-cancelar:hover {
+    background: #bbb;
+}
 
 footer {
     background-color: var(--container-background);
@@ -278,13 +284,11 @@ footer {
     margin-top: 30px;
 }
 
-
 footer p {
     margin: 5px 0;
 }
 
-/*mudança de tema*/
-
+/* Modo escuro (Dark Mode) */
 body.dark-mode {
     background-color: #1e1e1e;
     color: #f0f0f0;
@@ -299,7 +303,6 @@ body.dark-mode footer {
 
 body.dark-mode nav ul li a {
     color: var(--laranja-principal);
-
 }
 body.dark-mode nav ul li a:hover {
     color: var(--laranja-suave);
@@ -315,7 +318,7 @@ body.dark-mode .user-avatar:hover {
 }
 
 body.dark-mode .user-options {
-    background: #333; /* menu escuro */
+    background: #333;
     border: var(--borda-fina);
 }
 
@@ -324,15 +327,38 @@ body.dark-mode .user-options button {
 }
 
 body.dark-mode .user-options button:hover {
-    background: #FF8C00; /* mantém destaque laranja */
+    background: var(--laranja-principal);
     color: #fff;
 }
 
-body.dark-mode section#dashboard {
+body.dark-mode .cenas-container {
     background: #2a2a2a;
+    border-color: #555;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .form-cena {
+    background: #333;
+    border-color: #444;
+}
+
+body.dark-mode .form-cena input, body.dark-mode .form-cena textarea {
+    background: #444;
+    color: #f0f0f0;
     border-color: #555;
 }
 
+body.dark-mode .lista-cenas li {
+    background: #333;
+    border: 1px solid #444;
+}
+
+body.dark-mode .cenas-actions button {
+    background: var(--laranja-principal);
+}
+body.dark-mode .cenas-actions button:hover {
+    background: var(--laranja-escuro);
+}
 
 /* Responsividade */
 @media (max-width: 768px) {
@@ -341,8 +367,8 @@ body.dark-mode section#dashboard {
     }
 
     nav ul {
-        display: flex;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
     }
 
     nav ul li {
@@ -353,38 +379,43 @@ body.dark-mode section#dashboard {
         padding: 0 10px;
     }
 
-    .campos input, .campos textarea {
+    .cenas-container {
+        padding: 10px;
+    }
+
+    .acoes-cenas {
+        justify-content: center;
+    }
+
+    .form-cena input, .form-cena textarea {
         font-size: 0.9rem;
     }
 
-    section#postagens article h2 {
-        font-size: 1.5rem;
-    }
-
-    section#postagens article p {
-        font-size: 0.9rem;
+    .lista-cenas li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 15px;
     }
 }
 
 @media (max-width: 480px) {
-    .campos input, .campos textarea {
+    .form-cena input, .form-cena textarea {
         font-size: 0.8rem;
     }
 
-    section#postagens article h2 {
-        font-size: 1.25rem;
-    }
-
-    section#postagens article p {
-        font-size: 0.85rem;
-    }
-
-    nav ul {
+    .cenas-actions {
         flex-direction: column;
-        align-items: center;
+        gap: 8px;
+        width: 100%;
+        align-items: flex-end;
     }
+}
 
-    nav ul li {
-        margin-bottom: 5px;
-    }
+.borda-verde {
+  border: 2px solid #2ECC71; /* Verde */
+}
+
+.borda-vermelha {
+  border: 2px solid #E74C3C; /* Vermelho */
 }
