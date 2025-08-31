@@ -176,7 +176,7 @@ nav ul li a i {
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    width: 800px;
+    width: 700px;
     max-width: 100%;
 }
 
@@ -185,6 +185,7 @@ nav ul li a i {
     gap: 10px;
     margin-bottom: 20px;
     flex-wrap: wrap;
+    margin-top: 15px;
 }
 
 .acoes-cenas button {
@@ -220,6 +221,54 @@ nav ul li a i {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 6px;
+}
+
+.mensagem-vazia {
+  text-align: center;
+  color: #888;
+  margin: 20px 0;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.botoes-cenas {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.botoes-cenas button {
+    background: var(--laranja-suave, #ff9800);
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.botoes-cenas button:hover {
+    background: var(--laranja-escuro);
+}
+
+.btn-voltar {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    font-size: 16px;
+    transition: color 0.3s;
+    margin-top: 15px;
+}
+
+.btn-voltar:hover {
+    color: var(--laranja-principal);
 }
 
 .lista-cenas ul {
@@ -380,11 +429,11 @@ body.dark-mode .cenas-actions button:hover {
     }
 
     .cenas-container {
-        padding: 10px;
+        padding: 20px;
     }
 
     .acoes-cenas {
-        justify-content: center;
+        justify-content: left;
     }
 
     .form-cena input, .form-cena textarea {

@@ -48,8 +48,14 @@
                     <input type="text" id="nomeComodo" placeholder="Ex: Sala de Estar">
                     <label for="descricaoComodo">Descrição:</label>
                     <textarea id="descricaoComodo" placeholder="Ex: Cômodo principal da casa, com TV e sistema de som."></textarea>
-                    <button id="salvarComodo">Salvar</button>
-                    <button id="cancelarComodo" class="btn-cancelar">Cancelar</button>
+
+                    <!-- Mensagem de erro -->
+                    <p id="erroComodo" class="erro-msg hidden"></p>
+
+                    <div class="botoes-comodos">
+                        <button id="salvarComodo">Salvar</button>
+                        <button id="cancelarComodo" class="btn-cancelar">Cancelar</button>
+                    </div>
                 </div>
                 <div id="lista-comodos" class="lista-comodos">
                     <ul id="comodos-ul">
@@ -58,7 +64,20 @@
             </section>
             
             <section id="dispositivos-container" class="dispositivos-container hidden">
-                </section>
+            </section>
+
+            <!-- Modal de Confirmação -->
+            <div id="modal-confirm" class="modal hidden">
+                <div class="modal-content">
+                    <span id="modal-close" class="modal-close">&times;</span>
+                    <p id="modal-text">Tem certeza que deseja remover este cômodo?</p>
+                    <div class="modal-buttons">
+                        <button id="modal-cancel" class="btn-cancel">Cancelar</button>
+                        <button id="modal-confirm-btn" class="btn-confirm">Confirmar</button>
+                    </div>
+                </div>
+            </div>
+
         </main>
 
         <footer>

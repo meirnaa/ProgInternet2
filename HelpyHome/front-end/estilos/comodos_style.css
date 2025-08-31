@@ -199,7 +199,7 @@ nav ul li a i {
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    width: 800px;
+    width: 700px;
     max-width: 100%;
 }
 
@@ -208,6 +208,8 @@ nav ul li a i {
     gap: 10px;
     margin-bottom: 20px;
     flex-wrap: wrap;
+    margin-top: 15px;
+    justify-content: left;
 }
 
 .acoes-comodos button {
@@ -437,7 +439,7 @@ body.dark-mode .btn-gerenciar-dispositivos:hover {
     }
 
     .acoes-comodos {
-        justify-content: center;
+        justify-content: left;
     }
 
     .form-comodo input, .form-comodo textarea {
@@ -474,7 +476,7 @@ body.dark-mode .btn-gerenciar-dispositivos:hover {
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    width: 800px; /* <--- Mantenha ou ajuste para a sua necessidade */
+    width: 700px; /* <--- Mantenha ou ajuste para a sua necessidade */
     max-width: 100%;
 }
 
@@ -489,6 +491,7 @@ body.dark-mode .btn-gerenciar-dispositivos:hover {
     gap: 10px;
     margin-bottom: 20px;
     flex-wrap: wrap;
+    margin-top: 15px;
 }
 
 .acoes-comodos button,
@@ -519,9 +522,70 @@ body.dark-mode .btn-gerenciar-dispositivos:hover {
     margin-bottom: 20px;
 }
 
-.form-comodo.hidden,
-.form-dispositivo.hidden {
+.mensagem-vazia {
+  text-align: center;
+  color: #888;
+  margin: 20px 0;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
     display: none;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    text-align: center;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.modal-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.btn-cancel, .btn-confirm {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    background-color: #ccc;
+}
+
+.btn-confirm {
+    background-color: #FF8C00;
+    color: #fff;
+}
+
+.hidden {
+    display: none !important;
 }
 
 .form-comodo input, .form-comodo textarea,
@@ -549,6 +613,44 @@ body.dark-mode .btn-gerenciar-dispositivos:hover {
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
+.erro-msg {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.botoes-comodos {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.botoes-comodos button {
+    background: var(--laranja-suave, #ff9800);
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.borda-verde {
+  border: 2px solid #2ECC71; /* Verde */
+}
+
+.borda-vermelha {
+  border: 2px solid #E74C3C; /* Vermelho */
+}
+
+.botoes-comodos button:hover {
+    background: var(--laranja-escuro);
+}
+
 .comodo-info,
 .dispositivo-info {
     display: flex;
@@ -563,6 +665,20 @@ body.dark-mode .btn-gerenciar-dispositivos:hover {
     align-items: center;
 }
 
+.btn-voltar {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    font-size: 16px;
+    transition: color 0.3s;
+    margin-top: 15px;
+}
+
+.btn-voltar:hover {
+    color: var(--laranja-principal);
+}
+
 .comodo-actions button,
 .dispositivo-actions button,
 .btn-voltar-comodos {
@@ -570,14 +686,15 @@ body.dark-mode .btn-gerenciar-dispositivos:hover {
     border: none;
     cursor: pointer;
     color: #555;
-    font-size: 1.1em;
+    font-size: 16px;
     transition: color 0.3s;
+    margin-top: 15px;
 }
 
 .comodo-actions button:hover,
 .dispositivo-actions button:hover,
 .btn-voltar-comodos:hover {
-    color: #e68900;
+    color: var(--laranja-principal);
 }
 
 .btn-gerenciar-dispositivos {

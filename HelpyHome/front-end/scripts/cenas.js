@@ -4,29 +4,24 @@ const userOptions = document.getElementById("user-options");
 const logoutBtn = document.getElementById("logout-btn");
 const themeBtn = document.getElementById("theme-btn");
 
-// Alterna visibilidade das opções do usuário
 userAvatar.addEventListener("click", () => {
-    userOptions.style.display = userOptions.style.display === "flex" ? "none" : "flex";
+    userOptions.style.display = window.getComputedStyle(userOptions).display === "flex" ? "none" : "flex";
 });
 
-// Sair da conta
 logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("usuarioLogado");
     window.location.href = "login.html";
 });
 
-// Aplica tema salvo no localStorage
 if (localStorage.getItem("tema") === "dark") {
     document.body.classList.add("dark-mode");
 }
 
-// Alterna tema e salva no localStorage
 themeBtn.addEventListener("click", () => {
     document.body.classList.toggle("dark-mode");
     localStorage.setItem("tema", document.body.classList.contains("dark-mode") ? "dark" : "light");
 });
 
-// Fecha menu ao clicar fora
 document.addEventListener("click", (e) => {
     const isMenuOpen = window.getComputedStyle(userOptions).display === "flex";
     if (isMenuOpen && !userAvatar.contains(e.target) && !userOptions.contains(e.target)) {
@@ -35,8 +30,8 @@ document.addEventListener("click", (e) => {
 });
 
 // ====== Lógica Específica da Página de Cenas ======
-let cenas = JSON.parse(localStorage.getItem("cenas")) || [];
-let editandoIndex = null;
+let cenas = [];
+let editandoId = null;
 
 const btnCriarCena = document.getElementById("btn-criar");
 const btnListarCenas = document.getElementById("btn-listar");
@@ -51,37 +46,91 @@ const cancelarCena = document.getElementById("cancelarCena");
 
 const listaCenas = document.getElementById("cenas-ul");
 const acoesCenasContainer = document.querySelector(".acoes-cenas");
-
-// Inicializa a lista de cenas ao carregar a página
-renderizarCenas(true);
+const tituloPrincipal = document.querySelector(".cenas-container h2");
 
 // --- Funções de Cenas ---
-function salvarCenas() {
-    localStorage.setItem("cenas", JSON.stringify(cenas));
+async function buscarCenas() {
+    try {
+        const resp = await fetch("http://localhost:3000/cena");
+        cenas = await resp.json();
+        renderizarCenas(true);
+    } catch (err) {
+        console.error("Erro ao buscar cenas:", err);
+        listaCenas.innerHTML = "<li>Erro ao carregar cenas</li>";
+    }
 }
 
-function toggleAtivar(index) {
-    cenas[index].ativa = !cenas[index].ativa;
-    renderizarCenas(true);
+async function salvarCenaNoBanco() {
+    const data = {
+        nome: nomeCena.value,
+        acoes: acoesCena.value,
+        intervalo: parseInt(intervaloCena.value),
+        ativa: true
+    };
+
+    try {
+        if (editandoId !== null) {
+            await fetch(`http://localhost:3000/cena/${editandoId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+        } else {
+            await fetch("http://localhost:3000/cena", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+        }
+
+        formCena.classList.add("hidden");
+        listaCenas.classList.remove("hidden");
+        acoesCenasContainer.classList.remove("hidden");
+        buscarCenas();
+    } catch (err) {
+        console.error("Erro ao salvar cena:", err);
+        mostrarErro("Não foi possível salvar a cena");
+    }
+}
+
+async function removerCenaNoBanco(id) {
+    if (!confirm("Tem certeza que deseja remover esta cena?")) return;
+
+    try {
+        await fetch(`http://localhost:3000/cena/${id}`, { method: "DELETE" });
+        buscarCenas();
+    } catch (err) {
+        console.error("Erro ao remover cena:", err);
+        mostrarErro("Não foi possível remover a cena");
+    }
 }
 
 function renderizarCenas(showActions = true) {
     listaCenas.innerHTML = "";
-    cenas.forEach((cena, index) => {
+
+    if (cenas.length === 0) {
+        const msg = document.createElement("p");
+        msg.textContent = "Nenhuma cena cadastrada ainda.";
+        msg.classList.add("mensagem-vazia");
+        listaCenas.appendChild(msg);
+        return;
+    }
+
+    cenas.forEach((cena) => {
         const li = document.createElement("li");
-        li.dataset.index = index;
-        
+        li.dataset.id = cena.id;
+
         let actionsHTML = '';
         if (showActions) {
             const statusIcon = cena.ativa ? "🔴" : "🟢";
             const statusText = cena.ativa ? "Desativar" : "Ativar";
             const bordaClass = cena.ativa ? "borda-verde" : "borda-vermelha";
 
-    li.classList.add(bordaClass);
+            li.classList.add(bordaClass);
             actionsHTML = `
-                <button class="btn-ativar-item" data-index="${index}">${statusIcon} ${statusText}</button>
-                <button class="btn-editar-item" data-index="${index}"><i class="fas fa-pen"></i> Editar</button>
-                <button class="btn-remover-item" data-index="${index}"><i class="fas fa-trash"></i> Remover</button>
+                <button class="btn-ativar-item" data-id="${cena.id}">${statusIcon} ${statusText}</button>
+                <button class="btn-editar-item" data-id="${cena.id}"><i class="fas fa-pen"></i> Editar</button>
+                <button class="btn-remover-item" data-id="${cena.id}"><i class="fas fa-trash"></i> Remover</button>
             `;
         }
 
@@ -95,59 +144,46 @@ function renderizarCenas(showActions = true) {
     });
 
     if (showActions) {
-        document.querySelectorAll(".btn-editar-item").forEach(button => {
-            button.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const index = e.currentTarget.dataset.index;
-                editarCena(index);
+        document.querySelectorAll(".btn-editar-item").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const id = e.currentTarget.dataset.id;
+                const resp = await fetch(`http://localhost:3000/cena/${id}`);
+                const cena = await resp.json();
+                editarCena(cena);
             });
         });
 
-        document.querySelectorAll(".btn-remover-item").forEach(button => {
-            button.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const index = e.currentTarget.dataset.index;
-                removerCena(index);
-            });
+        document.querySelectorAll(".btn-remover-item").forEach(btn => {
+            btn.addEventListener("click", (e) => removerCenaNoBanco(e.currentTarget.dataset.id));
         });
 
-        document.querySelectorAll(".btn-ativar-item").forEach(button => {
-            button.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const index = e.currentTarget.dataset.index;
-                toggleAtivar(index);
+        document.querySelectorAll(".btn-ativar-item").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const id = e.currentTarget.dataset.id;
+                await fetch(`http://localhost:3000/cena/${id}/toggle`, { method: "PUT" });
+                buscarCenas();
             });
         });
     }
-
-    salvarCenas();
 }
 
-function editarCena(index) {
-    const cena = cenas[index];
+function editarCena(cena) {
     formTitulo.textContent = "Editar Cena";
     formCena.classList.remove("hidden");
     nomeCena.value = cena.nome;
     acoesCena.value = cena.acoes;
     intervaloCena.value = cena.intervalo;
-    editandoIndex = index;
+    editandoId = cena.id;
+
     listaCenas.classList.add("hidden");
     acoesCenasContainer.classList.add("hidden");
 }
 
-function removerCena(index) {
-    if (confirm(`Tem certeza que deseja remover a cena "${cenas[index].nome}"?`)) {
-        cenas.splice(index, 1);
-        renderizarCenas(true);
-        salvarCenas();
-    }
-}
-
-// --- Eventos dos Botões de Ação ---
+// --- Eventos ---
 btnCriarCena.addEventListener("click", () => {
     formTitulo.textContent = "Criar Cena";
     formCena.classList.remove("hidden");
-    editandoIndex = null;
+    editandoId = null;
     nomeCena.value = "";
     acoesCena.value = "";
     intervaloCena.value = 5;
@@ -156,46 +192,57 @@ btnCriarCena.addEventListener("click", () => {
 });
 
 btnListarCenas.addEventListener("click", () => {
-    cenas.sort((a, b) => {
-        if (a.nome < b.nome) return -1;
-        if (a.nome > b.nome) return 1;
-        return 0;
-    });
-    
+    cenas.sort((a, b) => a.nome.localeCompare(b.nome));
+
     listaCenas.classList.remove("hidden");
-    acoesCenasContainer.classList.remove("hidden");
     formCena.classList.add("hidden");
+    acoesCenasContainer.classList.add("hidden");
     renderizarCenas(false);
+
+    // Altera o título
+    tituloPrincipal.innerText = "Lista de Cenas";
+    tituloPrincipal.style.color = "#FF8C00";
+
+    // Cria botão voltar caso não exista
+    if (!document.getElementById("btn-voltar")) {
+        const btnVoltar = document.createElement("button");
+        btnVoltar.id = "btn-voltar";
+
+        btnVoltar.innerHTML = `<i class="fas fa-arrow-left"></i> Voltar`;
+        btnVoltar.classList.add("btn-voltar");
+        listaCenas.parentElement.appendChild(btnVoltar);
+
+        btnVoltar.addEventListener("click", () => {
+            listaCenas.classList.remove("hidden");
+            formCena.classList.add("hidden");
+            acoesCenasContainer.classList.remove("hidden");
+
+            // 🔹 Volta o título para "Gerenciamento de Cenas"
+            tituloPrincipal.innerText = "Gerenciamento de Cenas";
+            tituloPrincipal.style.color = "#000000";
+
+            btnVoltar.remove();
+        });
+    }
 });
 
-salvarCena.addEventListener("click", () => {
-    if (!nomeCena.value) {
-        alert("O nome da cena é obrigatório.");
-        return;
-    }
-
-    const cena = {
-        nome: nomeCena.value,
-        acoes: acoesCena.value,
-        intervalo: parseInt(intervaloCena.value),
-        ativa: true
-    };
-
-    if (editandoIndex !== null) {
-        cena.ativa = cenas[editandoIndex].ativa;
-        cenas[editandoIndex] = cena;
-    } else {
-        cenas.push(cena);
-    }
-
-    formCena.classList.add("hidden");
-    listaCenas.classList.remove("hidden");
-    acoesCenasContainer.classList.remove("hidden");
-    renderizarCenas(true);
-});
-
+// Cancelar
 cancelarCena.addEventListener("click", () => {
     formCena.classList.add("hidden");
     listaCenas.classList.remove("hidden");
     acoesCenasContainer.classList.remove("hidden");
 });
+
+// Função para mostrar mensagens de erro
+function mostrarErro(msg) {
+    let erroDiv = document.querySelector(".mensagem-erro");
+    if (!erroDiv) {
+        erroDiv = document.createElement("div");
+        erroDiv.classList.add("mensagem-erro");
+        formCena.appendChild(erroDiv);
+    }
+    erroDiv.textContent = msg;
+}
+
+// Inicializa lista
+buscarCenas();

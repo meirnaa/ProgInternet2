@@ -34,22 +34,74 @@ document.addEventListener("click", (e) => {
     }
 });
 
+async function buscarDadosDashboard() {
+    try {
+        // Busca todos os cômodos
+        const respComodos = await fetch("http://localhost:3000/comodo");
+        const comodos = await respComodos.json();
+
+        // Busca todos os dispositivos
+        const respDispositivos = await fetch("http://localhost:3000/dispositivo");
+        const dispositivos = await respDispositivos.json();
+
+        // Quantidade total de dispositivos
+        const totalDispositivos = dispositivos.length;
+
+        // Quantidade de dispositivos ativos
+        const dispositivosAtivos = dispositivos.filter(d => d.estado).length;
+
+        // Quantidade de cômodos
+        const totalComodos = comodos.length;
+
+        // Agrupar por tipo de dispositivo
+        const tipos = {};
+        dispositivos.forEach(d => {
+            if (!tipos[d.tipo]) tipos[d.tipo] = 0;
+            tipos[d.tipo]++;
+        });
+
+        return { totalDispositivos, dispositivosAtivos, totalComodos, tipos };
+
+    } catch (err) {
+        console.error("Erro ao buscar dados do dashboard:", err);
+        return { totalDispositivos: 0, dispositivosAtivos: 0, totalComodos: 0, tipos: {} };
+    }
+}
+
+
 // Chart 1: Dispositivos por tipo
-const ctx1 = document.getElementById('devicesChart').getContext('2d');
-new Chart(ctx1, {
-  type: 'pie',
-  data: {
-    labels: ['Lâmpadas', 'Câmeras', 'Ventiladores', 'Televisões'],
-    datasets: [{
-      data: [5, 3, 4, 3],
-      backgroundColor: ['#FF6F00', '#FF8F00', '#FFA000', '#FFB300']
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: { legend: { position: 'bottom' } }
-  }
-});
+let devicesChart;
+
+async function atualizarGrafico() {
+    const dados = await buscarDadosDashboard();
+
+    const labels = Object.keys(dados.tipos);
+    const values = Object.values(dados.tipos);
+    const colors = ['#FF6F00', '#FF8F00', '#FFA000', '#FFB300', '#FFC107', '#FFD54F'];
+
+    if (devicesChart) {
+        devicesChart.data.labels = labels;
+        devicesChart.data.datasets[0].data = values;
+        devicesChart.update();
+    } else {
+        const ctx1 = document.getElementById('devicesChart').getContext('2d');
+        devicesChart = new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors.slice(0, labels.length)
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+}
+
 
 // Chart 2: Uso da semana
 const ctx2 = document.getElementById('usageChart').getContext('2d');
@@ -106,7 +158,17 @@ function animateCounter(id, start, end, duration) {
   }, stepTime);
 }
 
-animateCounter("total-dispositivos", 0, 12, 800);
-animateCounter("dispositivos-ativos", 0, 10, 800);
-animateCounter("comodos", 0, 5, 800);
+async function atualizarContadores() {
+    const dados = await buscarDadosDashboard();
+
+    animateCounter("total-dispositivos", 0, dados.totalDispositivos, 800);
+    animateCounter("dispositivos-ativos", 0, dados.dispositivosAtivos, 800);
+    animateCounter("comodos", 0, dados.totalComodos, 800);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await atualizarContadores();
+    await atualizarGrafico();
+});
+
 
