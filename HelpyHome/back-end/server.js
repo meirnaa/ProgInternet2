@@ -91,6 +91,25 @@ app.delete("/comodo/:id", async (req, res) => {
   }
 });
 
+app.get("/nome-do-comodo", async (req, res) => {
+  try {
+    const { comodo_id } = req.query;
+
+    const result = await pool.query(
+      `SELECT nome FROM comodo WHERE id = $1`,
+      [comodo_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ erro: "Cômodo não encontrado" });
+    }
+
+    res.status(200).json(result.rows); // vai retornar [{ nome: "Sala" }]
+  } catch (err) {
+    res.status(400).json({ erro: err.message });
+  }
+});
+
 // ----------- ROTAS DISPOSITIVO ---------------
 
 // Listar todos os dispositivos
@@ -211,16 +230,27 @@ app.get("/cena/:id", async (req, res) => {
 // Criar nova cena
 app.post("/cena", async (req, res) => {
     try {
-        const { nome, acoes, intervalo, ativa } = req.body;
+        console.log("POST /cena body:", req.body); // 👈 debug
+        const { nome, descricao, estado, usuario_id } = req.body;
+
+        // Verifica se campos obrigatórios estão presentes (não apenas falsy)
+        if (nome == null || usuario_id == null) {
+            return res.status(400).json({ erro: "Campos obrigatórios ausentes" });
+        }
+
         const result = await pool.query(
-            "INSERT INTO cena (nome, acoes, intervalo, ativa) VALUES ($1,$2,$3,$4) RETURNING *",
-            [nome, acoes, intervalo, ativa]
+            "INSERT INTO cena (nome, descricao, estado, usuario_id) VALUES ($1, $2, $3, $4) RETURNING *",
+            [nome, descricao || "", estado || false, usuario_id]
         );
+
         res.status(201).json(result.rows[0]);
     } catch (err) {
+        console.error("Erro em /cena:", err.message);
         res.status(400).json({ erro: err.message });
     }
 });
+
+
 
 // Atualizar cena
 app.put("/cena/:id", async (req, res) => {
@@ -269,6 +299,22 @@ app.put("/cena/:id/toggle", async (req, res) => {
             [novaAtiva, id]
         );
         res.status(200).json(result.rows[0]);
+    } catch (err) {
+        res.status(400).json({ erro: err.message });
+    }
+});
+
+// ---------- ROTAS CENA_ACAO ----------
+app.post("/cena_acao", async (req, res) => {
+    try {
+        console.log("POST /cena_acao body:", req.body);
+        const { cena_id, dispositivo_id, intervalo, estadoDispositivo, ordem_execucao } = req.body;
+        const result = await pool.query(
+            `INSERT INTO cena_acao (cena_id, dispositivo_id, intervalo, estadoDispositivo, ordem_execucao)
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [cena_id, dispositivo_id, intervalo, estadoDispositivo, ordem_execucao]
+        );
+        res.status(201).json(result.rows[0]);
     } catch (err) {
         res.status(400).json({ erro: err.message });
     }

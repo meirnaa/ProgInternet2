@@ -217,7 +217,7 @@ nav ul li a i {
     display: none;
 }
 
-.form-cena input, .form-cena textarea {
+.form-cena input, .form-cena textarea, .form-dispositivos input {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 6px;
@@ -257,7 +257,16 @@ nav ul li a i {
     background: var(--laranja-escuro);
 }
 
-.btn-voltar {
+.select-comodo {
+  width: 100%;
+  padding: 10px;
+  margin-top: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.btn-navegacao {
     background: transparent;
     border: none;
     cursor: pointer;
@@ -267,7 +276,7 @@ nav ul li a i {
     margin-top: 15px;
 }
 
-.btn-voltar:hover {
+.btn-navegacao:hover {
     color: var(--laranja-principal);
 }
 
@@ -391,7 +400,7 @@ body.dark-mode .form-cena {
     border-color: #444;
 }
 
-body.dark-mode .form-cena input, body.dark-mode .form-cena textarea {
+body.dark-mode .form-cena input, body.dark-mode .form-cena textarea, body dark-mode .form-dispositivos input {
     background: #444;
     color: #f0f0f0;
     border-color: #555;
@@ -407,6 +416,123 @@ body.dark-mode .cenas-actions button {
 }
 body.dark-mode .cenas-actions button:hover {
     background: var(--laranja-escuro);
+}
+
+.mensagem-erro {
+    color: #b00020;
+    background: #fdecea;
+    border: 1px solid #f5c6cb;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.lista-comodos ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.lista-comodos li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: #fff8e1;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.lista-comodos li .comodo-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.lista-comodos li .comodo-info i {
+    font-size: 24px;
+    color: var(--laranja-principal);
+}
+
+.lista-comodos li .comodo-actions {
+    display: flex;
+    gap: 10px; /* Aumenta a distância entre os botões */
+    align-items: center;
+}
+
+.lista-comodos li .comodo-actions button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    font-size: 1.1em;
+    transition: color 0.3s;
+}
+
+.lista-comodos li .comodo-actions button:hover {
+    color: #e68900;
+}
+
+.lista-dispositivos ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.lista-dispositivos li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: #fff8e1;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#titulo-comodo {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: var(--cinza-texto);
+}
+
+/* Estilo para os selects */
+.form-dispositivos select {
+  padding: 6px 10px;
+  margin-left: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: #fffaf3;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Hover e foco */
+.form-dispositivos select:hover {
+  border-color: #ff9800;
+  background-color: #fff3e0; /* laranja clarinho */
+}
+
+.form-dispositivos select:focus {
+  outline: none;
+  border-color: var(--laranja-principal);
+}
+
+/* Estilo para as opções */
+.form-dispositivos option {
+  background: #fffaf3; /* fundo suave */
+  color: #333;
+  padding: 6px;
+}
+
+/* Para dar destaque à opção selecionada */
+.form-dispositivos option:checked {
+  color: black;
 }
 
 /* Responsividade */

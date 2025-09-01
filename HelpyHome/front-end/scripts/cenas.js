@@ -37,16 +37,11 @@ const btnCriarCena = document.getElementById("btn-criar");
 const btnListarCenas = document.getElementById("btn-listar");
 
 const formCena = document.getElementById("form-cena");
-const formTitulo = document.getElementById("form-titulo");
-const nomeCena = document.getElementById("nomeCena");
-const acoesCena = document.getElementById("acoesCena");
-const intervaloCena = document.getElementById("intervaloCena");
-const salvarCena = document.getElementById("salvarCena");
-const cancelarCena = document.getElementById("cancelarCena");
 
 const listaCenas = document.getElementById("cenas-ul");
 const acoesCenasContainer = document.querySelector(".acoes-cenas");
 const tituloPrincipal = document.querySelector(".cenas-container h2");
+let erroDiv;
 
 // --- Funções de Cenas ---
 async function buscarCenas() {
@@ -57,39 +52,6 @@ async function buscarCenas() {
     } catch (err) {
         console.error("Erro ao buscar cenas:", err);
         listaCenas.innerHTML = "<li>Erro ao carregar cenas</li>";
-    }
-}
-
-async function salvarCenaNoBanco() {
-    const data = {
-        nome: nomeCena.value,
-        acoes: acoesCena.value,
-        intervalo: parseInt(intervaloCena.value),
-        ativa: true
-    };
-
-    try {
-        if (editandoId !== null) {
-            await fetch(`http://localhost:3000/cena/${editandoId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            });
-        } else {
-            await fetch("http://localhost:3000/cena", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            });
-        }
-
-        formCena.classList.add("hidden");
-        listaCenas.classList.remove("hidden");
-        acoesCenasContainer.classList.remove("hidden");
-        buscarCenas();
-    } catch (err) {
-        console.error("Erro ao salvar cena:", err);
-        mostrarErro("Não foi possível salvar a cena");
     }
 }
 
@@ -161,35 +123,386 @@ function renderizarCenas(showActions = true) {
             btn.addEventListener("click", async (e) => {
                 const id = e.currentTarget.dataset.id;
                 await fetch(`http://localhost:3000/cena/${id}/toggle`, { method: "PUT" });
+
+                // Opcional: pode disparar a execução no backend
+                await fetch(`http://localhost:3000/cena/${id}/executar`, { method: "POST" });
+
                 buscarCenas();
             });
         });
     }
 }
 
-function editarCena(cena) {
-    formTitulo.textContent = "Editar Cena";
-    formCena.classList.remove("hidden");
-    nomeCena.value = cena.nome;
-    acoesCena.value = cena.acoes;
-    intervaloCena.value = cena.intervalo;
-    editandoId = cena.id;
+async function carregarComodos() {
+    try {
+        // Busca todos os cômodos
+        const resp = await fetch("http://localhost:3000/comodo");
+        const comodos = await resp.json();
 
-    listaCenas.classList.add("hidden");
-    acoesCenasContainer.classList.add("hidden");
+        if (comodos.length === 0) {
+            const msg = document.createElement("p");
+            msg.textContent = "Nenhum cômodo cadastrado ainda.";
+            msg.classList.add("mensagem-vazia");
+            listaComodos.appendChild(msg);
+            return;
+        }
+
+        // Busca a quantidade de dispositivos de cada cômodo
+        const promDispositivos = comodos.map(async comodo => {
+            const respDisp = await fetch(`http://localhost:3000/dispositivo?comodo_id=${comodo.id}`);
+            const dispositivos = await respDisp.json();
+            comodo.qtdDispositivos = dispositivos.length;
+        });
+
+        await Promise.all(promDispositivos); 
+
+        comodosContainer.innerHTML = "";
+        listaComodos.innerHTML = "";
+
+        // Renderiza cada cômodo com checkbox
+        comodos.forEach((comodo) => {
+            const li = document.createElement("li");
+            li.classList.add("comodo-item");
+            li.dataset.id = comodo.id;
+
+            li.innerHTML = `
+                <label>
+                    <input type="checkbox" class="checkbox-comodo" value="${comodo.id}">
+                    <strong>${comodo.nome}</strong> - ${comodo.descricao || "Sem descrição"} 
+                    (Dispositivos: ${comodo.qtdDispositivos})
+                </label>
+            `;
+            listaComodos.appendChild(li);
+        });
+    } catch (err) {
+        console.error("Erro ao carregar cômodos/dispositivos:", err);
+    }
 }
 
 // --- Eventos ---
-btnCriarCena.addEventListener("click", () => {
-    formTitulo.textContent = "Criar Cena";
-    formCena.classList.remove("hidden");
-    editandoId = null;
-    nomeCena.value = "";
-    acoesCena.value = "";
-    intervaloCena.value = 5;
+// ====== Fluxo de Criação de Cenas ======
+let novaCenaTemp = {};
+
+btnCriarCena.addEventListener("click", iniciarCriacaoCena);
+
+// 👉 Passo 1: formulário com nome/descrição
+function iniciarCriacaoCena() {
+    tituloPrincipal.innerText = "Criar Nova Cena";
+    tituloPrincipal.style.color = "#FF8C00";
+
     listaCenas.classList.add("hidden");
+    listaComodos.classList.add("hidden");
     acoesCenasContainer.classList.add("hidden");
-});
+    formCena.classList.remove("hidden");
+
+    // Mantém valores se existirem
+    const nomeValor = novaCenaTemp.nome || "";
+    const descValor = novaCenaTemp.descricao || "";
+
+    formCena.innerHTML = `
+        <label for="nome-cena">Nome da Cena:</label>
+        <input type="text" id="nome-cena" placeholder="Ex: Cinema" value="${nomeValor}">
+        <label for="descricao-cena">Descrição:</label>
+        <textarea id="descricao-cena" placeholder="Ex: Cena que simula um cinema pessoal dentro da casa.">${descValor}</textarea>
+    `;
+
+    criarBotoesNavegacao(avancarParaSelecaoComodos, voltarParaLista);
+}
+
+// 👉 Passo 2: seleção de cômodos
+async function avancarParaSelecaoComodos() {
+    const nome = document.getElementById("nome-cena").value.trim();
+    const descricao = document.getElementById("descricao-cena").value.trim();
+
+    if (!nome) {
+        mostrarErro("Informe um nome para a cena!");
+        return;
+    }
+
+    ocultarErro();
+
+    novaCenaTemp.nome = nome;
+    novaCenaTemp.descricao = descricao;
+
+    // Pega os checkboxes de cômodos selecionados na tela atual, se houver
+    const selecionados = document.querySelectorAll(".checkbox-comodo:checked");
+    novaCenaTemp.comodosSelecionados = Array.from(selecionados).map(chk => chk.value);
+
+    tituloPrincipal.innerText = "Selecionar Cômodos";
+    formCena.classList.add("hidden");
+    listaComodos.innerHTML = "";
+    listaComodos.classList.remove("hidden");
+
+    await carregarComodos();
+
+    // Marca os cômodos previamente selecionados
+    if (novaCenaTemp.comodosSelecionados) {
+        document.querySelectorAll(".checkbox-comodo").forEach(chk => {
+            chk.checked = novaCenaTemp.comodosSelecionados.includes(chk.value.toString());
+        });
+    }
+
+    criarBotoesNavegacao(avancarParaSelecaoDispositivos, voltarParaLista);
+}
+
+
+// 👉 Passo 3: seleção de dispositivos por cômodo
+function avancarParaSelecaoDispositivos() {
+    const selecionados = document.querySelectorAll(".checkbox-comodo:checked");
+    if (selecionados.length === 0) {
+        mostrarErro("Selecione pelo menos um cômodo para continuar!");
+        return;
+    }
+
+    // Salva os IDs selecionados em novaCenaTemp
+    novaCenaTemp.comodosSelecionados = Array.from(selecionados).map(chk => chk.value);
+
+    ocultarErro();
+
+    tituloPrincipal.innerText = "Selecionar Dispositivos";
+    listaComodos.classList.add("hidden");
+
+    carregarDispositivos(novaCenaTemp.comodosSelecionados);
+
+    criarBotoesNavegacao(finalizarCena, voltarParaSelecaoComodos);
+}
+
+
+function voltarParaSelecaoComodos() {
+    listaComodos.classList.remove("hidden");
+    tituloPrincipal.innerText = "Selecionar Cômodos";
+    listaCenas.classList.add("hidden");
+    formCena.classList.add("hidden");
+
+    // Limpa a lista de dispositivos
+    const listaDisp = document.getElementById("lista-dispositivos");
+    if (listaDisp) listaDisp.innerHTML = "";
+
+    // NÃO resetar os checkboxes aqui
+}
+
+
+// 👉 Passo final: salvar cena + ações
+async function finalizarCena() {
+    // Garante que a cena tenha nome
+    if (!novaCenaTemp.nome) {
+        mostrarErro("Informe um nome para a cena antes de salvar!");
+        return;
+    }
+
+    // Garante que haja dispositivos selecionados
+    const checkboxes = document.querySelectorAll(".disp-checkbox:checked");
+    if (checkboxes.length === 0) {
+        mostrarErro("Selecione pelo menos um dispositivo para salvar a cena!");
+        return;
+    }
+
+    try {
+
+        // Salva cena
+        const dataCena = {
+            nome: novaCenaTemp.nome,
+            descricao: novaCenaTemp.descricao || "",
+            estado: false,
+            usuario_id: 1
+        };
+        console.log(dataCena);
+
+        let cenaResp;
+        if (editandoId !== null) {
+            cenaResp = await fetch(`http://localhost:3000/cena/${editandoId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dataCena)
+            });
+        } else {
+            cenaResp = await fetch("http://localhost:3000/cena", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dataCena)
+            });
+        }
+
+        const cena = await cenaResp.json();
+
+        // Salva ações dos dispositivos
+        for (const chk of checkboxes) {
+            const dispositivoId = chk.dataset.id;
+
+            // Estado: converter string para boolean
+            const estado = document.querySelector(`.estado-disp[data-id="${dispositivoId}"]`).value === "true";
+
+            // Intervalo: pegar número e evitar NaN
+            const intervalo = parseInt(document.querySelector(`.intervalo-disp[data-id="${dispositivoId}"]`).value) || 0;
+
+            // Ordem de execução: pegar número e evitar NaN
+            const ordem_execucao = parseInt(document.querySelector(`.ordem-disp[data-id="${dispositivoId}"]`).value) || 1;
+
+            await fetch("http://localhost:3000/cena_acao", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    cena_id: cena.id,
+                    dispositivo_id: dispositivoId,
+                    intervalo,
+                    estadoDispositivo: estado,
+                    ordem_execucao
+                })
+            });
+        }
+
+        // Limpa temporário
+        novaCenaTemp = {};
+        editandoId = null;
+
+        // Volta para lista
+        tituloPrincipal.innerText = "Gerenciamento de Cenas";
+        tituloPrincipal.style.color = "#000";
+        listaCenas.classList.remove("hidden");
+        acoesCenasContainer.classList.remove("hidden");
+        const listaDisp = document.getElementById("lista-dispositivos");
+        if (listaDisp) listaDisp.innerHTML = "";
+        listaDisp.classList.add("hidden");
+
+        const navContainer = document.getElementById("botoes-navegacao");
+        if (navContainer) navContainer.remove();
+
+        ocultarErro();
+        buscarCenas();
+    } catch (err) {
+        console.error("Erro ao salvar cena:", err);
+        mostrarErro("Erro ao salvar a cena.");
+    }
+}
+
+// --- Navegação (Voltar/Continuar) ---
+function criarBotoesNavegacao(onContinuar, onVoltar) {
+    let navContainer = document.getElementById("botoes-navegacao");
+    if (navContainer) navContainer.remove();
+
+    navContainer = document.createElement("div");
+    navContainer.id = "botoes-navegacao";
+    navContainer.style.display = "flex";
+    navContainer.style.justifyContent = "space-between";
+    navContainer.style.marginTop = "20px";
+
+    // Botão voltar
+    const btnVoltar = document.createElement("button");
+    btnVoltar.classList.add("btn-navegacao");
+    btnVoltar.innerHTML = `<i class="fas fa-arrow-left"></i> Voltar`;
+    btnVoltar.addEventListener("click", () => {
+        ocultarErro();
+        if (onVoltar) onVoltar();
+    });
+
+    // Botão continuar
+    const btnContinuar = document.createElement("button");
+    btnContinuar.classList.add("btn-navegacao");
+    btnContinuar.innerHTML = `Continuar <i class="fas fa-arrow-right"></i>`;
+    btnContinuar.addEventListener("click", () => {
+        ocultarErro();
+        if (onContinuar) onContinuar();
+    });
+
+    navContainer.appendChild(btnVoltar);
+    navContainer.appendChild(btnContinuar);
+
+    tituloPrincipal.parentElement.appendChild(navContainer);
+}
+
+// --- Voltar auxiliares ---
+function voltarParaLista() {
+    formCena.classList.add("hidden");
+    listaComodos.classList.add("hidden");
+    tituloPrincipal.innerText = "Gerenciamento de Cenas";
+    tituloPrincipal.style.color = "#000000";
+
+    listaCenas.classList.remove("hidden");
+    acoesCenasContainer.classList.remove("hidden");
+
+    const navContainer = document.getElementById("botoes-navegacao");
+    if (navContainer) navContainer.remove();
+}
+
+function voltarParaSelecaoComodos() {
+    listaComodos.classList.remove("hidden");
+    tituloPrincipal.innerText = "Selecionar Cômodos";
+    listaCenas.classList.add("hidden");
+    formCena.classList.add("hidden");
+
+    // Limpa a lista de dispositivos
+    const listaDisp = document.getElementById("lista-dispositivos");
+    if (listaDisp) listaDisp.innerHTML = "";
+}
+
+async function carregarDispositivos(idsSelecionados) {
+    const container = document.getElementById("lista-dispositivos");
+    container.innerHTML = "";
+
+    for (const comodoId of idsSelecionados) {
+        const resp = await fetch(`http://localhost:3000/dispositivo?comodo_id=${comodoId}`);
+        const dispositivos = await resp.json();
+
+        const resp2 = await fetch(`http://localhost:3000/nome-do-comodo?comodo_id=${comodoId}`);
+        const comodos = await resp2.json();
+
+        if (dispositivos.length === 0) continue;
+
+        const section = document.createElement("div");
+        section.classList.add("comodo-section");
+
+        // Pega o nome do cômodo (do primeiro dispositivo ou via API do cômodo)
+        const nomeComodo = comodos[0].nome || `Cômodo ${comodoId}`;
+
+        section.innerHTML = `
+            <h3 id="titulo-comodo">${nomeComodo}</h3>
+            <form class="form-dispositivos">
+                <ul class="lista-dispositivos">
+                    ${dispositivos.map(d => `
+                        <li class="dispositivo-item">
+                            <label>
+                                <input type="checkbox" class="disp-checkbox" data-id="${d.id}">
+                                <strong>${d.nome}</strong> - ${d.tipo}
+                            </label>
+                            <select class="estado-disp" data-id="${d.id}">
+                                <option value="true">Ligar</option>
+                                <option value="false">Desligar</option>
+                            </select>
+                            <input type="number" class="ordem-disp" data-id="${d.id}" placeholder="Ordem de execução" min="1">
+                            <input type="number" class="intervalo-disp" data-id="${d.id}" placeholder="Intervalo (s)" min="0">
+                        </li>
+                    `).join("")}
+                </ul>
+            </form>
+        `;
+
+
+        container.appendChild(section);
+    }
+}
+
+
+
+function coletarConfiguracaoDispositivos() {
+    const selecionados = document.querySelectorAll(".chk-dispositivo:checked");
+    const acoes = [];
+
+    selecionados.forEach(chk => {
+        const id = chk.value;
+        const estado = document.querySelector(`.estado-dispositivo[data-id="${id}"]`).value;
+        const ordem = document.querySelector(`.ordem-dispositivo[data-id="${id}"]`).value;
+
+        acoes.push({
+            dispositivo_id: id,
+            estadoDispositivo: estado === "true",
+            ordem: parseInt(ordem) || 0
+        });
+    });
+
+    console.log("Ações configuradas:", acoes);
+    return acoes;
+}
+
 
 btnListarCenas.addEventListener("click", () => {
     cenas.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -226,23 +539,34 @@ btnListarCenas.addEventListener("click", () => {
     }
 });
 
-// Cancelar
-cancelarCena.addEventListener("click", () => {
-    formCena.classList.add("hidden");
-    listaCenas.classList.remove("hidden");
-    acoesCenasContainer.classList.remove("hidden");
-});
-
-// Função para mostrar mensagens de erro
 function mostrarErro(msg) {
-    let erroDiv = document.querySelector(".mensagem-erro");
+    const navContainer = document.getElementById("botoes-navegacao");
+    if (!navContainer) return;
+
     if (!erroDiv) {
+        // cria wrapper antes dos botões
+        const wrapper = document.createElement("div");
+        wrapper.id = "botoes-navegacao-anterior";
+        navContainer.parentNode.insertBefore(wrapper, navContainer);
+
         erroDiv = document.createElement("div");
         erroDiv.classList.add("mensagem-erro");
-        formCena.appendChild(erroDiv);
+        wrapper.appendChild(erroDiv);
     }
+
     erroDiv.textContent = msg;
+    erroDiv.classList.remove("hidden"); // garante que apareça
 }
+
+function ocultarErro() {
+    if (erroDiv) {
+        erroDiv.classList.add("hidden");
+    }
+}
+
+const listaComodos = document.getElementById("comodos-ul");
+const comodosContainer = document.getElementById("comodos-container");
+
 
 // Inicializa lista
 buscarCenas();

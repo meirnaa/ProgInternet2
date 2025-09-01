@@ -39,32 +39,27 @@
             <section class="cenas-container">
                 <h2>Gerenciamento de Cenas</h2>
 
+                <div id="mensagem-global"></div>
+
                 <div class="acoes-cenas">
                     <button id="btn-criar"><i class="fa fa-plus"></i> Criar Cena</button>
                     <button id="btn-listar"><i class="fa fa-list"></i> Listar Cenas</button>
                 </div>
-
+                <div id="lista-comodos" class="lista-comodos">
+                    <ul id="comodos-ul">
+                        </ul>
+                </div>
+                <div id="comodos-container"></div>
                 <div id="form-cena" class="form-cena hidden">
-                    <h3 id="form-titulo">Nova Cena</h3>
-                    <label for="nomeCena">Nome da Cena:</label>
-                    <input type="text" id="nomeCena" placeholder="Ex: Chegada em Casa">
-                    
-                    <label for="acoesCena">Ações (descrição):</label>
-                    <textarea id="acoesCena" placeholder="Ex: Ligar luz da sala, ajustar temperatura, etc."></textarea>
-                    
-                    <label for="intervaloCena">Intervalo (segundos):</label>
-                    <input type="number" id="intervaloCena" value="5">
-
-                    <div class="botoes-cenas">
-                        <button id="salvarCena">Salvar</button>
-                        <button id="cancelarCena" class="btn-cancelar">Cancelar</button>
-                    </div>
                 </div>
 
                 <div id="lista-cenas" class="lista-cenas">
                     <ul id="cenas-ul">
-                        </ul>
+                    </ul>
                 </div>
+
+                <div id="lista-dispositivos"></div>
+
             </section>
         </main>
 
