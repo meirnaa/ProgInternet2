@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const express = require("express");
 const { Pool } = require("pg");
 const cors = require("cors");
-const allowedOrigins = ["http://127.0.0.1:5500", "http://localhost:5500", "http://localhost:3000"];
+const allowedOrigins = ["http://127.0.0.1:5500", "http://localhost:5501", "http://localhost:3000"];
 
 const app = express();
 app.use(express.json());
@@ -77,20 +77,6 @@ app.post("/login", async (req, res) => {
   } catch (err) {
     console.error("Erro no login:", err);
     res.status(500).json({ message: "Erro no servidor" });
-  }
-});
-
-// rota para pegar usuário logado
-app.get("/me", (req, res) => {
-  const token = req.cookies.token;
-
-  if (!token) return res.status(401).json({ message: "Não autenticado" });
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    res.json({ usuario: decoded });
-  } catch (err) {
-    return res.status(401).json({ message: "Token inválido" });
   }
 });
 
