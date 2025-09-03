@@ -108,6 +108,33 @@ form {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    
+    /* Centraliza */
+    justify-content: center; /* eixo principal (vertical se flex-direction: column) */
+    align-items: center;     /* eixo secundário (horizontal) */
+}
+
+.input-senha {
+  position: relative;
+}
+
+.input-senha input {
+  width: 100%;
+  padding: 10px 40px 10px 10px; /* espaço extra na direita pro olho */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.toggle-senha {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 15px;
+  color: #666;
+  user-select: none;
 }
 
 input[type="email"],
@@ -116,6 +143,7 @@ input[type="text"] {
     padding: 12px;
     border: var(--input-borda);
     border-radius: 8px;
+    width: 250px;
     font-size: 16px;
     background-color: transparent;
     color: var(--cinza-texto);
@@ -217,6 +245,35 @@ a:hover {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+#mensagem-erro, #mensagem-erro-cadastro {
+    background: #fdecea;
+    border: 1px solid #f5c6cb;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+#mensagem-erro-texto, #mensagem-erro-cadastro-texto {
+    padding: 8px;
+    color: red;
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+#botao-entrar .desativado, #botao-cadastrar .desativado {
+    pointer-events: none;
+    background-color: #e4e4e4;
+    cursor: not-allowed;
+}
+
+.desativado {
+    pointer-events: none;
+    background-color: #e4e4e4;
+    cursor: not-allowed;
 }
 
 .theme-toggle {

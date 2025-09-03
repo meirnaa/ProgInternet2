@@ -605,7 +605,7 @@ body.dark-mode .btn-gerenciar-dispositivos:hover {
 .lista-dispositivos li {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: left;
     padding: 12px 15px;
     margin-bottom: 8px;
     background: #fff8e1;

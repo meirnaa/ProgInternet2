@@ -1,168 +1,112 @@
+// ===================================================================
+// FUNÇÃO CENTRAL DE AUTENTICAÇÃO
+// Esta função será usada para TODAS as chamadas ao backend.===================================================================
+async function fetchWithAuth(url, options = {}) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.error('Nenhum token encontrado, redirecionando para o login.');
+        window.location.href = 'login.html';
+        throw new Error('Token de autenticação não encontrado.');
+    }
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers,
+    };
+    const fetchOptions = { ...options, headers };
+    const response = await fetch(url, fetchOptions);
+    if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuarioLogado');
+        console.error('Token inválido ou expirado. Redirecionando para o login.');
+        window.location.href = 'login.html';
+        throw new Error('Não autorizado.');
+    }
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.erro || `Erro na requisição: ${response.statusText}`);
+    }
+    return response.json(); // Retorna os dados JSON diretamente
+}
+
 // ====== Código Comum para Cabeçalho e Rodapé ======
 const userAvatar = document.getElementById("user-avatar");
 const userOptions = document.getElementById("user-options");
 const logoutBtn = document.getElementById("logout-btn");
 const themeBtn = document.getElementById("theme-btn");
 
-// Alterna visibilidade das opções do usuário
-userAvatar.addEventListener("click", () => {
-    userOptions.style.display = userOptions.style.display === "flex" ? "none" : "flex";
-});
-
-// Sair da conta
-logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("usuarioLogado");
-    window.location.href = "login.html";
-});
-
-// Aplica tema salvo no localStorage
-if (localStorage.getItem("tema") === "dark") {
-    document.body.classList.add("dark-mode");
-}
-
-// Alterna tema e salva no localStorage
-themeBtn.addEventListener("click", () => {
+if (userAvatar) userAvatar.addEventListener("click", () => userOptions.style.display = userOptions.style.display === "flex" ? "none" : "flex");
+if (localStorage.getItem("tema") === "dark") document.body.classList.add("dark-mode");
+if (themeBtn) themeBtn.addEventListener("click", () => {
     document.body.classList.toggle("dark-mode");
     localStorage.setItem("tema", document.body.classList.contains("dark-mode") ? "dark" : "light");
 });
-
-// Fecha menu ao clicar fora
 document.addEventListener("click", (e) => {
-    const isMenuOpen = userOptions.style.display === "flex";
+    const isMenuOpen = userOptions && userOptions.style.display === "flex";
     if (isMenuOpen && !userAvatar.contains(e.target) && !userOptions.contains(e.target)) {
         userOptions.style.display = "none";
     }
 });
 
-
 // --- Funções de Cômodos ---
-
-// Referências aos elementos da página
 const btnCriarComodo = document.getElementById("btn-criar-comodo");
-const btnListarComodos = document.getElementById("btn-listar-comodos");
 const formComodo = document.getElementById("form-comodo");
-const formTituloComodo = document.getElementById("form-titulo-comodo");
-const nomeComodo = document.getElementById("nomeComodo");
-const descricaoComodo = document.getElementById("descricaoComodo");
-const salvarComodo = document.getElementById("salvarComodo");
-const cancelarComodo = document.getElementById("cancelarComodo");
+const nomeComodoInput = document.getElementById("nomeComodo");
+const descricaoComodoInput = document.getElementById("descricaoComodo");
+const salvarComodoBtn = document.getElementById("salvarComodo");
+const cancelarComodoBtn = document.getElementById("cancelarComodo");
 const listaComodos = document.getElementById("comodos-ul");
 const comodosContainer = document.querySelector(".comodos-container");
 const acoesComodosContainer = document.querySelector(".acoes-comodos");
 const dispositivosSection = document.getElementById("dispositivos-container");
 const erroComodo = document.getElementById("erroComodo");
-
-// variável de controle de edição
-let editandoComodoIndex = null;
+let editandoComodoId = null;
 const tituloPrincipal = document.querySelector(".comodos-container h2");
 
-// Carregar lista ao carregar a página
-renderizarComodos(true);
-
-// Botão Criar Cômodo
-btnCriarComodo.addEventListener("click", () => {
-    // Altera o título
+// --- Eventos Principais ---
+if (btnCriarComodo) btnCriarComodo.addEventListener("click", () => {
     tituloPrincipal.innerText = "Criar Cômodo";
     tituloPrincipal.style.color = "#FF8C00";
     listaComodos.classList.add("hidden");
-
     acoesComodosContainer.classList.add("hidden");
-
-    formTituloComodo.textContent = "Novo Cômodo";
     formComodo.classList.remove("hidden");
-    nomeComodo.value = "";
-    descricaoComodo.value = "";
-    editandoComodoIndex = null; // resetar edição
+    nomeComodoInput.value = "";
+    descricaoComodoInput.value = "";
+    editandoComodoId = null;
 });
 
-// Botão Listar Cômodos
-btnListarComodos.addEventListener("click", () => {
-    renderizarComodos(false);
-    formComodo.classList.add("hidden");
-    acoesComodosContainer.classList.add("hidden");
-    tituloPrincipal.innerText = "Lista de Cômodos";
-    tituloPrincipal.style.color = "#FF8C00";
-    
-    // Cria botão voltar caso não exista
-    if (!document.getElementById("btn-voltar")) {
-        const btnVoltar = document.createElement("button");
-        btnVoltar.id = "btn-voltar";
-
-        btnVoltar.innerHTML = `<i class="fas fa-arrow-left"></i> Voltar`;
-        btnVoltar.classList.add("btn-voltar");
-        listaComodos.parentElement.appendChild(btnVoltar);
-
-        btnVoltar.addEventListener("click", () => {
-            formComodo.classList.add("hidden");
-            acoesComodosContainer.classList.remove("hidden");
-            tituloPrincipal.innerText = "Gerenciamento de Cômodos";
-            tituloPrincipal.style.color = "#000000";
-
-            btnVoltar.remove();
-            renderizarComodos(true);
-        });
-    }
-});
-
-cancelarComodo.addEventListener("click", () => {
-    formComodo.classList.add("hidden");   // Esconde o formulário
+if (cancelarComodoBtn) cancelarComodoBtn.addEventListener("click", () => {
     formComodo.classList.add("hidden");
     acoesComodosContainer.classList.remove("hidden");
-
     tituloPrincipal.innerText = "Gerenciamento de Cômodos";
     tituloPrincipal.style.color = "#000000";
-    renderizarComodos(true);                   // Mostra a lista atualizada
+    renderizarComodos(true);
     listaComodos.classList.remove("hidden");
-    erroComodo.textContent = "";
-    erroComodo.classList.add("hidden");
+    if(erroComodo) erroComodo.classList.add("hidden");
 });
 
 async function renderizarComodos(showActions = true) {
     listaComodos.innerHTML = "";
-
     try {
-        // Busca todos os cômodos
-        const resp = await fetch("http://localhost:3000/comodo");
-        const comodos = await resp.json();
-
+        const comodos = await fetchWithAuth("http://localhost:3000/comodo"); 
         if (comodos.length === 0) {
-            const msg = document.createElement("p");
-            msg.textContent = "Nenhum cômodo cadastrado ainda.";
-            msg.classList.add("mensagem-vazia");
-            listaComodos.appendChild(msg);
+            listaComodos.innerHTML = `<p class="mensagem-vazia">Nenhum cômodo cadastrado ainda.</p>`;
             return;
         }
 
-        // Busca a quantidade de dispositivos de cada cômodo em paralelo
-        const promDispositivos = comodos.map(async comodo => {
-            const respDisp = await fetch(`http://localhost:3000/dispositivo?comodo_id=${comodo.id}`);
-            const dispositivos = await respDisp.json();
+        for (const comodo of comodos) {
+            const dispositivos = await fetchWithAuth(`http://localhost:3000/dispositivo-comodo?comodo_id=${comodo.id}`); // CORRIGIDO: Porta 3000
             comodo.qtdDispositivos = dispositivos.length;
-        });
+        }
 
-        await Promise.all(promDispositivos); 
-
-        // Renderiza cada cômodo
         comodos.forEach((comodo) => {
             const li = document.createElement("li");
             li.classList.add("comodo-item");
             li.dataset.id = comodo.id;
-
-            let actionsHTML = "";
-            if (showActions) {
-                actionsHTML = `
-                    <button class="btn-gerenciar-dispositivos" data-id="${comodo.id}">
-                        <i class="fas fa-tools"></i> Gerenciar Dispositivos
-                    </button>
-                    <button class="btn-editar-item" data-id="${comodo.id}">
-                        <i class="fas fa-pen"></i> Editar
-                    </button>
-                    <button class="btn-remover-item" data-id="${comodo.id}">
-                        <i class="fas fa-trash"></i> Remover
-                    </button>
-                `;
-            }
-
+            const actionsHTML = showActions ? `
+                <button class="btn-gerenciar-dispositivos" data-id="${comodo.id}"><i class="fas fa-tools"></i> Gerenciar</button>
+                <button class="btn-editar-item" data-id="${comodo.id}"><i class="fas fa-pen"></i> Editar</button>
+                <button class="btn-remover-item" data-id="${comodo.id}"><i class="fas fa-trash"></i> Remover</button>` : "";
             li.innerHTML = `
                 <div class="comodo-info">
                     <div>
@@ -171,190 +115,91 @@ async function renderizarComodos(showActions = true) {
                         <p>Dispositivos: ${comodo.qtdDispositivos}</p>
                     </div>
                 </div>
-                <div class="comodo-actions">
-                    ${actionsHTML}
-                </div>
-            `;
+                <div class="comodo-actions">${actionsHTML}</div>`;
             listaComodos.appendChild(li);
         });
 
-        // Eventos dos botões
-        if (showActions) {
-            document.querySelectorAll(".btn-gerenciar-dispositivos").forEach(button => {
-                button.addEventListener("click", async (e) => {
-                    e.stopPropagation();
-                    const id = e.currentTarget.dataset.id;
-                    const resp = await fetch(`http://localhost:3000/comodo/${id}`);
-                    const comodo = await resp.json();
-                    exibirGerenciadorDispositivos(comodo);
-                });
-            });
-
-            document.querySelectorAll(".btn-editar-item").forEach(button => {
-                button.addEventListener("click", async (e) => {
-                    e.stopPropagation();
-                    const id = e.currentTarget.dataset.id;
-                    const resp = await fetch(`http://localhost:3000/comodo/${id}`);
-                    const comodo = await resp.json();
-                    editarComodo(comodo);
-                });
-            });
-
-            document.querySelectorAll(".btn-remover-item").forEach(button => {
-                button.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    const li = e.currentTarget.closest(".comodo-item");
-                    const id = li.dataset.id;
-                    const nome = li.querySelector("h4").textContent;
-                    confirmarRemocaoComodo(id, nome);
-                });
-            });
-        }
-
+        if (showActions) addEventListenersComodos();
     } catch (err) {
         console.error("Erro ao renderizar cômodos:", err);
         listaComodos.innerHTML = "<li>Erro ao carregar cômodos</li>";
     }
 }
 
+function addEventListenersComodos() {
+    document.querySelectorAll(".btn-gerenciar-dispositivos").forEach(btn => btn.addEventListener("click", handleGerenciarDispositivos));
+    document.querySelectorAll(".btn-editar-item").forEach(btn => btn.addEventListener("click", handleEditarComodo));
+    document.querySelectorAll(".btn-remover-item").forEach(btn => btn.addEventListener("click", handleRemoverComodo));
+}
 
-// Editar cômodo
-function editarComodo(comodo) {
-    formTituloComodo.textContent = "Editar Cômodo";
+async function handleGerenciarDispositivos(e) {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.id;
+    const comodo = await fetchWithAuth(`http://localhost:3000/comodo/${id}`); // CORRIGIDO: Porta 3000
+    exibirGerenciadorDispositivos(comodo);
+}
+
+async function handleEditarComodo(e) {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.id;
+    const comodo = await fetchWithAuth(`http://localhost:3000/comodo/${id}`); // CORRIGIDO: Porta 3000
     formComodo.classList.remove("hidden");
-    nomeComodo.value = comodo.nome;
-    descricaoComodo.value = comodo.descricao || "";
-    editandoComodoIndex = comodo.id; // guardamos o id real do banco
+    nomeComodoInput.value = comodo.nome;
+    descricaoComodoInput.value = comodo.descricao || "";
+    editandoComodoId = comodo.id;
 }
 
-// Remover cômodo direto do banco
-async function removerComodo(id) {
-    try {
-        await fetch(`http://localhost:3000/comodo/${id}`, {
-            method: "DELETE",
-        });
-        renderizarComodos();
-    } catch (err) {
-        console.error("Erro ao remover cômodo:", err);
-    }
+function handleRemoverComodo(e) {
+    e.stopPropagation();
+    const id = e.currentTarget.closest(".comodo-item").dataset.id;
+    const nome = e.currentTarget.closest(".comodo-item").querySelector("h4").textContent;
+    confirmarRemocaoComodo(id, nome);
 }
 
-// Salvar (criar ou atualizar) cômodo
-salvarComodo.addEventListener("click", async () => {
-    // Limpa mensagem de erro anterior
-    erroComodo.textContent = "";
-    erroComodo.classList.add("hidden");
-
-    if (!nomeComodo.value) {
+if(salvarComodoBtn) salvarComodoBtn.addEventListener("click", async () => {
+    if (!nomeComodoInput.value) {
         erroComodo.textContent = "O nome do cômodo é obrigatório.";
         erroComodo.classList.remove("hidden");
         return;
     }
-
-    const body = {
-        nome: nomeComodo.value,
-        descricao: descricaoComodo.value
-    };
-
+    erroComodo.classList.add("hidden");
+    const body = { nome: nomeComodoInput.value, descricao: descricaoComodoInput.value };
+    const method = editandoComodoId ? "PUT" : "POST";
+    const url = editandoComodoId ? `http://localhost:3000/comodo/${editandoComodoId}` : "http://localhost:3000/comodo"; // CORRIGIDO: Porta 3000
     try {
-        if (editandoComodoIndex) {
-            // atualizar
-            await fetch(`http://localhost:3000/comodo/${editandoComodoIndex}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body)
-            });
-        } else {
-            // criar
-            await fetch("http://localhost:3000/comodo", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body)
-            });
-        }
-
+        await fetchWithAuth(url, { method, body: JSON.stringify(body) }); // CORRIGIDO: fetchWithAuth
         formComodo.classList.add("hidden");
         tituloPrincipal.innerText = "Gerenciamento de Cômodos";
-        tituloPrincipal.style.color = "#000000";        
-        renderizarComodos();
+        tituloPrincipal.style.color = "#000000";
         acoesComodosContainer.classList.remove("hidden");
         listaComodos.classList.remove("hidden");
-        erroComodo.textContent = "";
-        erroComodo.classList.add("hidden");
-
+        renderizarComodos();
     } catch (err) {
         console.error("Erro ao salvar cômodo:", err);
+        erroComodo.textContent = "Erro ao salvar cômodo.";
+        erroComodo.classList.remove("hidden");
     }
 });
-
-// Referências
-const modal = document.getElementById("modal-confirm");
-const modalText = document.getElementById("modal-text");
-const modalClose = document.getElementById("modal-close");
-const modalCancel = document.getElementById("modal-cancel");
-const modalConfirmBtn = document.getElementById("modal-confirm-btn");
-
-let comodoParaRemoverId = null;
-
-// Função para abrir modal
-function abrirModalConfirmacao(mensagem, comodoId) {
-    modalText.textContent = mensagem;
-    comodoParaRemoverId = comodoId;
-    modal.classList.remove("hidden");
-}
-
-// Fechar modal
-function fecharModal() {
-    modal.classList.add("hidden");
-    comodoParaRemoverId = null;
-}
-
-// Eventos do modal
-modalClose.addEventListener("click", fecharModal);
-modalCancel.addEventListener("click", fecharModal);
-
-// Confirmar remoção
-modalConfirmBtn.addEventListener("click", async () => {
-    if (comodoParaRemoverId) {
-        await removerComodo(comodoParaRemoverId);
-        comodoParaRemoverId = null;
-    } else if (dispositivoParaRemoverId) {
-        await removerDispositivo(dispositivoParaRemoverId);
-        dispositivoParaRemoverId = null;
-    }
-    fecharModal();
-});
-
-// Substituir o confirm padrão
-function confirmarRemocaoComodo(id, nome) {
-    abrirModalConfirmacao(`Tem certeza que deseja remover o cômodo "${nome}"?`, id);
-}
-
-
 
 // --- Lógica de Dispositivos ---
-
 let comodoSelecionadoId = null;
 let editandoDispositivoId = null;
 
-// Exibir gerenciador de dispositivos de um cômodo
 async function exibirGerenciadorDispositivos(comodo) {
-    comodoSelecionadoId = comodo.id; // guarda o id do banco
+    comodoSelecionadoId = comodo.id;
     comodosContainer.classList.add("hidden");
     dispositivosSection.classList.remove("hidden");
-
     dispositivosSection.innerHTML = `
         <div class="comodos-container">
             <h3>Dispositivos em: ${comodo.nome}</h3>
-            <div class="acoes-dispositivos">
-                <button id="btn-add-dispositivo"><i class="fa fa-plus"></i> Adicionar Dispositivo</button>
-            </div>
+            <div class="acoes-dispositivos"><button id="btn-add-dispositivo"><i class="fa fa-plus"></i> Adicionar Dispositivo</button></div>
             <div id="form-dispositivo" class="form-dispositivo hidden">
                 <h4 id="form-titulo-dispositivo">Novo Dispositivo</h4>
                 <label for="nomeDispositivo">Nome:</label>
                 <input type="text" id="nomeDispositivo" placeholder="Ex: Lâmpada do teto">
                 <label for="tipoDispositivo">Tipo:</label>
-                <input type="text" id="tipoDispositivo" placeholder="Ex: Lâmpada, Termostato">
+                <input type="text" id="tipoDispositivo" placeholder="Ex: Iluminação">
+                <p id="mensagem-erro-dispositivo" style="color:red;"></p>
                 <div class="botoes-comodos">
                     <button id="salvarDispositivo">Salvar</button>
                     <button id="cancelarDispositivo" class="btn-cancelar">Cancelar</button>
@@ -362,204 +207,183 @@ async function exibirGerenciadorDispositivos(comodo) {
             </div>
             <ul id="lista-dispositivos" class="lista-dispositivos"></ul>
             <button id="btn-voltar-comodos" class="btn-voltar-comodos"><i class="fas fa-arrow-left"></i> Voltar</button>
-        </div>
-    `;
-
-    // Carrega os dispositivos do banco
+        </div>`;
     await renderizarDispositivos();
+    addEventListenersGerenciador();
+}
 
+function addEventListenersGerenciador() {
     document.getElementById("btn-add-dispositivo").addEventListener("click", () => {
-        document.getElementById("lista-dispositivos").classList.add("hidden");
         document.getElementById("form-dispositivo").classList.remove("hidden");
-        document.getElementById("form-titulo-dispositivo").textContent = "Novo Dispositivo";
-        document.getElementById("nomeDispositivo").value = "";
-        document.getElementById("tipoDispositivo").value = "";
-        editandoDispositivoId = null;
+        document.getElementById("lista-dispositivos").classList.add("hidden");
         document.getElementById("btn-voltar-comodos").classList.add("hidden");
+        editandoDispositivoId = null;
     });
-
-    document.getElementById("salvarDispositivo").addEventListener("click", salvarDispositivo);
     document.getElementById("cancelarDispositivo").addEventListener("click", () => {
-        document.getElementById("lista-dispositivos").classList.remove("hidden");
         document.getElementById("form-dispositivo").classList.add("hidden");
-        mostrarMensagemErro("");
+        document.getElementById("lista-dispositivos").classList.remove("hidden");
         document.getElementById("btn-voltar-comodos").classList.remove("hidden");
-        renderizarDispositivos();
     });
     document.getElementById("btn-voltar-comodos").addEventListener("click", () => {
         dispositivosSection.classList.add("hidden");
         comodosContainer.classList.remove("hidden");
+        renderizarComodos();
     });
+    document.getElementById("salvarDispositivo").addEventListener("click", salvarDispositivo);
 }
 
-// Renderiza dispositivos do banco
 async function renderizarDispositivos() {
     const listaDispositivos = document.getElementById("lista-dispositivos");
     listaDispositivos.innerHTML = "";
-
     try {
-const resp = await fetch(`http://localhost:3000/dispositivo?comodo_id=${comodoSelecionadoId}`);
-        const dispositivos = await resp.json();
-
+        const dispositivos = await fetchWithAuth(`http://localhost:3000/dispositivo-comodo?comodo_id=${comodoSelecionadoId}`); // CORRIGIDO: Porta 3000
         if (dispositivos.length === 0) {
-            const msg = document.createElement("p");
-            msg.textContent = "Nenhum dispositivo cadastrado ainda.";
-            msg.classList.add("mensagem-vazia");
-            listaDispositivos.appendChild(msg);
+            listaDispositivos.innerHTML = `<p class="mensagem-vazia">Nenhum dispositivo cadastrado ainda.</p>`;
             return;
         }
-        
-        dispositivos.forEach(dispositivo => {
+        dispositivos.forEach(d => {
             const li = document.createElement("li");
-            li.dataset.id = dispositivo.id;
-
-            // Define ícone e texto do estado
-            const statusIcon = dispositivo.estado ? "🔴" : "🟢";
-            const statusText = dispositivo.estado ? "Desligar" : "Ligar";
-            const bordaClass = dispositivo.estado ? "borda-verde" : "borda-vermelha";
+            li.dataset.id = d.id;
+            const bordaClass = d.estado ? "borda-verde" : "borda-vermelha";
             li.classList.add(bordaClass);
-
             li.innerHTML = `
-                <span>${dispositivo.nome} (${dispositivo.tipo})</span>
+                <span>${d.nome} (${d.tipo})</span>
                 <div class="dispositivo-actions">
-                    <button class="btn-toggle-estado" data-id="${dispositivo.id}">${statusIcon} ${statusText}</button>
-                    <button class="btn-editar-dispositivo" data-id="${dispositivo.id}"><i class="fas fa-pen"></i> Editar</button>
-                    <button class="btn-remover-dispositivo" data-id="${dispositivo.id}"><i class="fas fa-trash"></i> Remover</button>
-                </div>
-            `;
+                    <button class="btn-toggle-estado" data-id="${d.id}">${d.estado ? 'Desligar' : 'Ligar'}</button>
+                    <button class="btn-editar-dispositivo" data-id="${d.id}"><i class="fas fa-pen"></i> Editar</button>
+                     <button class="btn-remover-dispositivo" data-id="${d.id}"><i class="fas fa-trash"></i> Remover</button>
+                </div>`;
             listaDispositivos.appendChild(li);
         });
-
-        listaDispositivos.querySelectorAll(".btn-editar-dispositivo").forEach(button => {
-            button.addEventListener("click", async (e) => {
-                const id = e.currentTarget.dataset.id;
-                const resp = await fetch(`http://localhost:3000/dispositivo/${id}`);
-                const dispositivo = await resp.json();
-                editarDispositivo(dispositivo);
-            });
-        });
-
-        listaDispositivos.querySelectorAll(".btn-remover-dispositivo").forEach(button => {
-            button.addEventListener("click", (e) => {
-                const li = e.currentTarget.closest("li");
-                const id = li.dataset.id;
-                const nome = li.querySelector("span").textContent.split(" (")[0]; // pega só o nome
-                confirmarRemocaoDispositivo(id, nome);
-            });
-        });
-
-        listaDispositivos.querySelectorAll(".btn-toggle-estado").forEach(button => {
-            button.addEventListener("click", async (e) => {
-                const id = e.currentTarget.dataset.id;
-                await toggleEstadoDispositivo(id);
-                renderizarDispositivos();
-            });
-        });
-
-
+        addEventListenersDispositivos();
     } catch (err) {
         console.error("Erro ao carregar dispositivos:", err);
         listaDispositivos.innerHTML = "<li>Erro ao carregar dispositivos</li>";
     }
 }
 
-// Função para alternar estado do dispositivo
-async function toggleEstadoDispositivo(id) {
-    try {
-        const resp = await fetch(`http://localhost:3000/dispositivo/${id}`);
-        const dispositivo = await resp.json();
-        const novoEstado = !dispositivo.estado;
+function addEventListenersDispositivos() {
+    document.querySelectorAll(".btn-toggle-estado").forEach(btn => btn.addEventListener("click", toggleEstadoDispositivo));
+    document.querySelectorAll(".btn-editar-dispositivo").forEach(btn => btn.addEventListener("click", handleEditarDispositivo));
+    document.querySelectorAll(".btn-remover-dispositivo").forEach(btn => btn.addEventListener("click", handleRemoverDispositivo));
+}
 
-        await fetch(`http://localhost:3000/dispositivo/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                nome: dispositivo.nome,
-                tipo: dispositivo.tipo,
-                estado: novoEstado,
-                comodo_id: dispositivo.comodo_id
-            })
+// Função que faz a mágica acontecer, no comodos.js
+
+async function toggleEstadoDispositivo(e) {
+    const id = e.currentTarget.dataset.id;
+    try {
+        // 1. Busca o dispositivo atual para saber seu estado
+        const dispositivo = await fetchWithAuth(`http://localhost:3000/dispositivo/${id}`);
+        
+        // 2. Prepara o corpo da requisição com o estado invertido
+        const body = { ...dispositivo, estado: !dispositivo.estado };
+        
+        // 3. Envia a atualização para o servidor
+        await fetchWithAuth(`http://localhost:3000/dispositivo/${id}`, { 
+            method: "PUT", 
+            body: JSON.stringify(body) 
         });
+        
+        // 4. Atualiza a lista para mostrar o novo estado
+        renderizarDispositivos();
     } catch (err) {
-        console.error("Erro ao alternar estado do dispositivo:", err);
-        mostrarMensagemErro("Não foi possível alterar o estado.");
+        console.error("Erro ao alternar estado:", err);
     }
 }
 
-// Salvar ou atualizar dispositivo no banco
-async function salvarDispositivo() {
-    const nome = document.getElementById("nomeDispositivo").value;
-    const tipo = document.getElementById("tipoDispositivo").value;
-
-    if (!nome || !tipo) {
-        mostrarMensagemErro("Nome e tipo do dispositivo são obrigatórios.");
-        return;
-    }
-
-    try {
-        if (editandoDispositivoId) {
-            // Atualizar dispositivo
-            await fetch(`http://localhost:3000/dispositivo/${editandoDispositivoId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, tipo, comodo_id: comodoSelecionadoId })
-            });
-        } else {
-            // Criar dispositivo
-            await fetch("http://localhost:3000/dispositivo", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, tipo, comodo_id: comodoSelecionadoId })
-            });
-        }
-
-        document.getElementById("form-dispositivo").classList.add("hidden");
-        document.getElementById("lista-dispositivos").classList.remove("hidden");
-        mostrarMensagemErro("");
-        document.getElementById("btn-voltar-comodos").classList.remove("hidden");
-        await renderizarDispositivos();
-    } catch (err) {
-        console.error("Erro ao salvar dispositivo:", err);
-        mostrarMensagemErro("Erro ao salvar dispositivo.");
-    }
-}
-
-// Editar dispositivo (preenche formulário)
-function editarDispositivo(dispositivo) {
+async function handleEditarDispositivo(e) {
+    const id = e.currentTarget.dataset.id;
+    const dispositivo = await fetchWithAuth(`http://localhost:3000/dispositivo/${id}`);
+    document.getElementById("form-dispositivo").classList.remove("hidden");
     document.getElementById("form-titulo-dispositivo").textContent = "Editar Dispositivo";
     document.getElementById("nomeDispositivo").value = dispositivo.nome;
     document.getElementById("tipoDispositivo").value = dispositivo.tipo;
-    document.getElementById("form-dispositivo").classList.remove("hidden");
-    editandoDispositivoId = dispositivo.id;
+    editandoDispositivoId = id;
 }
 
-let dispositivoParaRemoverId = null;
+function handleRemoverDispositivo(e) {
+    const id = e.currentTarget.dataset.id;
+    const nome = e.currentTarget.closest("li").querySelector("span").textContent.split(" (")[0];
+    confirmarRemocaoDispositivo(id, nome);
+}
 
-function confirmarRemocaoDispositivo(id, nome) {
-    dispositivoParaRemoverId = id;
-    modalText.textContent = `Tem certeza que deseja remover o dispositivo "${nome}"?`;
+async function salvarDispositivo() {
+    const nome = document.getElementById("nomeDispositivo").value;
+    const tipo = document.getElementById("tipoDispositivo").value;
+    const erroMsg = document.getElementById("mensagem-erro-dispositivo");
+    if (!nome || !tipo) {
+        erroMsg.textContent = "Nome e tipo são obrigatórios.";
+        return;
+    }
+    erroMsg.textContent = "";
+    const body = { nome, tipo, comodo_id: comodoSelecionadoId, estado: false };
+    const method = editandoDispositivoId ? "PUT" : "POST";
+    const url = editandoDispositivoId ? `http://localhost:3000/dispositivo/${editandoDispositivoId}` : "http://localhost:3000/dispositivo";
+    try {
+        await fetchWithAuth(url, { method, body: JSON.stringify(body) });
+        document.getElementById("form-dispositivo").classList.add("hidden");
+        document.getElementById("lista-dispositivos").classList.remove("hidden");
+        document.getElementById("btn-voltar-comodos").classList.remove("hidden");
+        renderizarDispositivos();
+    } catch (err) {
+        console.error("Erro ao salvar dispositivo:", err);
+        erroMsg.textContent = "Erro ao salvar dispositivo.";
+    }
+}
+
+// --- Funções de Modal e Logout ---
+const modal = document.getElementById("modal-confirm");
+const modalText = document.getElementById("modal-text");
+const modalClose = document.getElementById("modal-close");
+const modalCancel = document.getElementById("modal-cancel");
+const modalConfirmBtn = document.getElementById("modal-confirm-btn");
+let itemParaRemover = { id: null, tipo: null };
+
+function abrirModalConfirmacao(mensagem, tipo, id) {
+    modalText.textContent = mensagem;
+    itemParaRemover = { id, tipo };
     modal.classList.remove("hidden");
 }
 
-// Remover dispositivo
-async function removerDispositivo(id) {
-    try {
-        await fetch(`http://localhost:3000/dispositivo/${id}`, { method: "DELETE" });
-        await renderizarDispositivos();
-    } catch (err) {
-        console.error("Erro ao remover dispositivo:", err);
-        mostrarMensagemErro("Erro ao remover dispositivo.");
-    }
+function fecharModal() {
+    modal.classList.add("hidden");
+    itemParaRemover = { id: null, tipo: null };
 }
 
-// Função para exibir mensagens de erro embaixo do formulário
-function mostrarMensagemErro(msg) {
-    let container = document.getElementById("mensagem-erro");
-    if (!container) {
-        container = document.createElement("p");
-        container.id = "mensagem-erro";
-        container.style.color = "red";
-        document.getElementById("form-dispositivo").appendChild(container);
-    }
-    container.textContent = msg;
+if(modalClose) modalClose.addEventListener("click", fecharModal);
+if(modalCancel) modalCancel.addEventListener("click", fecharModal);
+if(modalConfirmBtn) modalConfirmBtn.addEventListener("click", async () => {
+    if (itemParaRemover.tipo === "logout") logout();
+    else if (itemParaRemover.tipo === "comodo") await fetchWithAuth(`http://localhost:3000/comodo/${itemParaRemover.id}`, { method: "DELETE" }).then(() => renderizarComodos()); // CORRIGIDO
+    else if (itemParaRemover.tipo === "dispositivo") await fetchWithAuth(`http://localhost:3000/dispositivo/${itemParaRemover.id}`, { method: "DELETE" }).then(() => renderizarDispositivos()); // CORRIGIDO
+    fecharModal();
+});
+
+function confirmarRemocaoComodo(id, nome) {
+    abrirModalConfirmacao(`Tem certeza que deseja remover o cômodo "${nome}"?`, "comodo", id);
 }
+function confirmarRemocaoDispositivo(id, nome) {
+    abrirModalConfirmacao(`Tem certeza que deseja remover o dispositivo "${nome}"?`, "dispositivo", id);
+}
+function confirmarLogout() {
+    abrirModalConfirmacao("Tem certeza que deseja sair da conta?", "logout");
+}
+
+function logout() {
+    localStorage.removeItem("usuarioLogado");
+    localStorage.removeItem("token");
+    window.location.href = "login.html";
+}
+
+// --- Inicialização da Página ---
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("token"); // CORRIGIDO
+    if (!token) {
+        document.body.innerHTML = "<h1>Acesso Negado</h1><p>Você precisa fazer <a href='login.html'>login</a> para acessar esta página.</p>";
+    } else {
+        renderizarComodos();
+    }
+});
+
+if(logoutBtn) logoutBtn.addEventListener("click", confirmarLogout);

@@ -11,8 +11,7 @@ userAvatar.addEventListener("click", () => {
 
 // sair da conta
 logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("usuarioLogado");
-    window.location.href = "login.html";
+  confirmarLogout();
 });
 
 // aplica tema salvo
@@ -34,50 +33,84 @@ document.addEventListener("click", (e) => {
     }
 });
 
+async function fetchAuth(url, options = {}) {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Não autenticado");
+
+    // garante que os headers existam
+    options.headers = {
+        ...options.headers,
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+    };
+
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Erro na requisição");
+    }
+
+    return response.json();
+}
+
+
 async function buscarDadosDashboard() {
     try {
-        // Busca todos os cômodos
-        const respComodos = await fetch("http://localhost:3000/comodo");
-        const comodos = await respComodos.json();
+        const comodos = await fetchAuth("http://localhost:3000/comodo");
+        const dispositivos = await fetchAuth("http://localhost:3000/dispositivo");
 
-        // Busca todos os dispositivos
-        const respDispositivos = await fetch("http://localhost:3000/dispositivo");
-        const dispositivos = await respDispositivos.json();
-
-        // Quantidade total de dispositivos
-        const totalDispositivos = dispositivos.length;
-
-        // Quantidade de dispositivos ativos
-        const dispositivosAtivos = dispositivos.filter(d => d.estado).length;
-
-        // Quantidade de cômodos
-        const totalComodos = comodos.length;
-
-        // Agrupar por tipo de dispositivo
-        const tipos = {};
-        dispositivos.forEach(d => {
-            if (!tipos[d.tipo]) tipos[d.tipo] = 0;
-            tipos[d.tipo]++;
-        });
-
-        return { totalDispositivos, dispositivosAtivos, totalComodos, tipos };
-
+        return { comodos, dispositivos };
     } catch (err) {
         console.error("Erro ao buscar dados do dashboard:", err);
-        return { totalDispositivos: 0, dispositivosAtivos: 0, totalComodos: 0, tipos: {} };
+        throw err;
     }
 }
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+    if (!usuarioLogado) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    try {
+        // Busca todos os dados de uma vez
+        const dados = await buscarDadosDashboard();
+
+        // Atualiza contadores
+        atualizarContadores(dados);
+
+        // Atualiza gráfico
+        atualizarGrafico(dados);
+
+    } catch (err) {
+        console.error("Erro ao carregar dashboard:", err);
+        // opcional: exibir mensagem de erro para o usuário
+    }
+});
 
 
 // Chart 1: Dispositivos por tipo
 let devicesChart;
+function atualizarGrafico(dados) {
+    // Agrupa dispositivos por tipo
+    const tipos = {};
+    dados.dispositivos.forEach(d => {
+        tipos[d.tipo] = (tipos[d.tipo] || 0) + 1;
+    });
 
-async function atualizarGrafico() {
-    const dados = await buscarDadosDashboard();
-
-    const labels = Object.keys(dados.tipos);
-    const values = Object.values(dados.tipos);
+    let labels = Object.keys(tipos);
+    let values = Object.values(tipos);
     const colors = ['#FF6F00', '#FF8F00', '#FFA000', '#FFB300', '#FFC107', '#FFD54F'];
+
+    // Se não houver dispositivos, mostra valor padrão
+    if (Object.keys(tipos).length === 0) {
+        labels = ["Nenhum dispositivo"];
+        values = [1];
+        tipos["Nenhum dispositivo"] = 0;
+        colors[0] = '#FF8F00';
+    }
 
     if (devicesChart) {
         devicesChart.data.labels = labels;
@@ -101,6 +134,7 @@ async function atualizarGrafico() {
         });
     }
 }
+
 
 
 // Chart 2: Uso da semana
@@ -148,6 +182,12 @@ new Chart(ctx3, {
 
 function animateCounter(id, start, end, duration) {
   let obj = document.getElementById(id);
+
+  if (start === end) {
+    obj.textContent = end;
+    return;
+  }
+
   let range = end - start;
   let stepTime = Math.abs(Math.floor(duration / range));
   let current = start;
@@ -158,17 +198,71 @@ function animateCounter(id, start, end, duration) {
   }, stepTime);
 }
 
-async function atualizarContadores() {
-    const dados = await buscarDadosDashboard();
+function atualizarContadores(dados) {
+    console.log(dados);
+    const totalDispositivos = dados.dispositivos.length;
+    const dispositivosAtivos = dados.dispositivos.filter(d => d.estado).length;
+    const totalComodos = dados.comodos.length;
 
-    animateCounter("total-dispositivos", 0, dados.totalDispositivos, 800);
-    animateCounter("dispositivos-ativos", 0, dados.dispositivosAtivos, 800);
-    animateCounter("comodos", 0, dados.totalComodos, 800);
+    animateCounter("total-dispositivos", 0, totalDispositivos, 800);
+    animateCounter("dispositivos-ativos", 0, dispositivosAtivos, 800);
+    animateCounter("comodos", 0, totalComodos, 800);
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-    await atualizarContadores();
-    await atualizarGrafico();
+// Referências
+const modal = document.getElementById("modal-confirm");
+const modalText = document.getElementById("modal-text");
+const modalClose = document.getElementById("modal-close");
+const modalCancel = document.getElementById("modal-cancel");
+const modalConfirmBtn = document.getElementById("modal-confirm-btn");
+
+let comodoParaRemoverId = null;
+
+function abrirModalConfirmacao(mensagem) {
+    modalText.textContent = mensagem;
+    modal.classList.remove("hidden");
+}
+
+function fecharModal() {
+    modal.classList.add("hidden");
+    comodoParaRemoverId = null;
+}
+
+// Eventos do modal
+modalClose.addEventListener("click", fecharModal);
+modalCancel.addEventListener("click", fecharModal);
+
+// Confirmar remoção
+modalConfirmBtn.addEventListener("click", async () => {
+    await logout();
+    fecharModal();
 });
 
+function confirmarLogout() {
+    abrirModalConfirmacao(`Tem certeza que deseja sair da conta?`);
+}
 
+async function logout() {
+    await fetch("http://localhost:3000/logout", {
+        method: "POST",
+        credentials: "include"
+    });
+    localStorage.removeItem("usuarioLogado");
+    window.location.href = "login.html";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+    const modalLogin = document.getElementById("modal-login");
+    const modalLoginBtn = document.getElementById("modal-login-btn");
+
+    if (!usuarioLogado) {
+        // Exibe o modal
+        modalLogin.classList.remove("hidden");
+
+        // Bloqueia qualquer interação até clicar no botão
+        modalLoginBtn.addEventListener("click", () => {
+            window.location.href = "login.html";
+        });
+    }
+});

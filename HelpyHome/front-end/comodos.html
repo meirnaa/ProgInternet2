@@ -40,10 +40,8 @@
                 <h2>Gerenciamento de Cômodos</h2>
                 <div class="acoes-comodos">
                     <button id="btn-criar-comodo"><i class="fa fa-plus"></i> Criar Cômodo</button>
-                    <button id="btn-listar-comodos"><i class="fa fa-list"></i> Listar Cômodos</button>
                 </div>
                 <div id="form-comodo" class="form-comodo hidden">
-                    <h3 id="form-titulo-comodo">Novo Cômodo</h3>
                     <label for="nomeComodo">Nome do Cômodo:</label>
                     <input type="text" id="nomeComodo" placeholder="Ex: Sala de Estar">
                     <label for="descricaoComodo">Descrição:</label>
@@ -76,6 +74,13 @@
                         <button id="modal-confirm-btn" class="btn-confirm">Confirmar</button>
                     </div>
                 </div>
+            </div>
+
+            <div id="modal-login" class="modal hidden">
+            <div class="modal-content">
+                <p>Você precisa estar logado para acessar esta página.</p><br>
+                <button id="modal-login-btn" class="btn-confirm">Ir para Login</button>
+            </div>
             </div>
 
         </main>
