@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.partidasRoutes = void 0;
+const express_1 = require("express");
+const partida_repository_1 = require("../../infra/database/partida_repository");
+const partida_service_1 = require("../../application/services/partida_service");
+const partida_controller_1 = require("../controllers/partida_controller");
+const router = (0, express_1.Router)();
+exports.partidasRoutes = router;
+const partidaRepo = new partida_repository_1.PartidaRepository();
+const partidaService = new partida_service_1.PartidaService(partidaRepo);
+router.post("/partidas", (0, partida_controller_1.criarPartidaController)(partidaService));
+router.get("/partidas", (0, partida_controller_1.listarPartidasController)(partidaService));
+router.get("/partidas/:id", (0, partida_controller_1.buscarPartidaPorIdController)(partidaService));
+router.put("/partidas/:id", (0, partida_controller_1.atualizarPartidaController)(partidaService));
+router.delete("/partidas/:id", (0, partida_controller_1.deletarPartidaController)(partidaService));

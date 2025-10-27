@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.convitesRoutes = void 0;
+const express_1 = require("express");
+const convite_repository_1 = require("../../infra/database/convite_repository");
+const convite_service_1 = require("../../application/services/convite_service");
+const convite_controller_1 = require("../controllers/convite_controller");
+const router = (0, express_1.Router)();
+exports.convitesRoutes = router;
+const conviteRepo = new convite_repository_1.ConviteRepository();
+const conviteService = new convite_service_1.ConviteService(conviteRepo);
+router.post("/convites", (0, convite_controller_1.criarConviteController)(conviteService));
+router.get("/jogadores/:id/convites", (0, convite_controller_1.listarConvitesPorJogadorController)(conviteService));
+router.put("/convites/:id", (0, convite_controller_1.atualizarConviteController)(conviteService));
